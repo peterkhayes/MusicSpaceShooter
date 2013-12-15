@@ -1,4 +1,5 @@
 var player = require('./player.js')
+var _ = require('underscore')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
@@ -17,7 +18,7 @@ function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth * .5, window.innerHeight );
 
-  addShit()
+  buildScene()
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
@@ -33,7 +34,7 @@ function runLoop() {
   })
 }
 
-function addShit() {
+function buildScene() {
   scene.add(new THREE.AmbientLight(0x404040));
   sunLight = new THREE.DirectionalLight(0xffeedd);
   sunLight.position.set(0.3, - 1, - 1).normalize();

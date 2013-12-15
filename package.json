@@ -1,7 +1,9 @@
 {
   "name": "music_space_shooter",
   "description": "The greatest work of art of all time",
-  "dependencies": {},
+  "dependencies": {
+    "underscore": "1.5.2"
+  },
   "scripts": {
     "start": "bash server.sh"
   }
