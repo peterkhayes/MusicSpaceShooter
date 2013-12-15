@@ -1,0 +1,8 @@
+{
+  "name": "music_space_shooter",
+  "description": "The greatest work of art of all time",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "*"
+  }
+}
