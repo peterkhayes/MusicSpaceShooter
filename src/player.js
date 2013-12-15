@@ -2,10 +2,11 @@ var ship = require('./ship')
 var utils = require('./utils')
 
 module.exports = function (scene) {
-  var player = ship.load(function (ship) {
-                 player = extend(ship)
-                 scene.add(player)
-               })
+  var player
+  ship.load(function (ship) {
+    player = extend(ship)
+    scene.add(player)
+  })
 
   document.onkeydown = function (e) {
     var key = e.which,

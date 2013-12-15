@@ -1279,9 +1279,52 @@
 },{}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
-module.exports=require(2)
-},{}],4:[function(require,module,exports){
-var player = require('./player.js')
+var ship = require('./ship')
+var _ = require('underscore')
+
+var colors = {
+  red: [0, .7, .5]
+, orange: [0.083, .7, .5]
+, yellow: [.16666, .7, .5]
+, green: [.333, .7, .5]
+, blue: [.6666, .7, .5]
+, purple: [.75, .7, .5]
+}
+
+_.mixin({choice: function (arr) {
+           return arr[~~ (Math.random() * arr.length - 1)]
+         }})
+function circular(arr) {
+  var i = 0, l = arr.length - 1
+  return function () {
+    return arr[++i % l]
+  }
+}
+
+
+var vals = _.values(colors)
+var eeny = circular(vals)
+
+module.exports = function (scene) {
+  _.range(30).forEach(function (i) {
+    ship.load(function (ship) {
+      var c = eeny()
+      ship.material.color.setHSL(c[0], c[1], c[2])
+      ship.step = function () {
+        if (Math.random() < .9) return
+        ship.position.set(
+          Math.random() * 400,
+          Math.random() * 400,
+          0
+        )
+      }
+      scene.add(ship)
+    })
+  })
+}
+},{"./ship":6,"underscore":1}],4:[function(require,module,exports){
+var player = require('./player')
+var enemy = require('./enemy')
 var _ = require('underscore')
 
 var camera, scene, renderer;
@@ -1306,7 +1349,9 @@ function init() {
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
+
   player(scene)
+  enemy(scene)
 }
 
 function runLoop() {
@@ -1336,15 +1381,16 @@ function buildScene() {
   floor.position.y = -150
   scene.add(floor)
 }
-},{"./player.js":5,"underscore":1}],5:[function(require,module,exports){
+},{"./enemy":3,"./player":5,"underscore":1}],5:[function(require,module,exports){
 var ship = require('./ship')
 var utils = require('./utils')
 
 module.exports = function (scene) {
-  var player = ship.load(function (ship) {
-                 player = extend(ship)
-                 scene.add(player)
-               })
+  var player
+  ship.load(function (ship) {
+    player = extend(ship)
+    scene.add(player)
+  })
 
   document.onkeydown = function (e) {
     var key = e.which,
@@ -1404,32 +1450,30 @@ function shoot() {
 
 },{"./ship":6,"./utils":7}],6:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
-
-new THREE.JSONLoader(true).load('models/feisar.js', createShip)
+var _ = require('underscore')
+events.setMaxListeners(200)
 module.exports = { load: function (cb) {
-                     events.on('load', cb)
+                     cb = _.compose(cb, createShip)
+                     geo ? cb() : events.once('load', cb)
                    }
                  }
+var geo, mat
+new THREE.JSONLoader(true).load('models/feisar.js', function (g, m) {
+  geo = g
+  mat = m[0]
+  events.emit('load')
+})
 
-function createMesh (geometry, mat) {
-  geometry.computeTangents();
-  var mesh = new THREE.Mesh(geometry, mat);
-
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-
-  return mesh;
-}
-
-function createShip(geometry, materials) {
-  console.log('wow')
-  var ship = createMesh(geometry, materials[0])
-  ship.scale.set(40, 10, 10)
+function createShip() {
+  var ship = new THREE.Mesh(geo, mat.clone())
+  ship.castShadow = true;
+  ship.receiveShadow = true;
+  ship.scale.set(20, 20, 10)
   ship.rotation.set(Math.PI / 2, Math.PI, 0)
-  events.emit('load', ship)
+  return ship
 }
 
-},{"events":10}],7:[function(require,module,exports){
+},{"events":10,"underscore":1}],7:[function(require,module,exports){
 module.exports.scaleBy =
   function (x) {
   return function (y) {

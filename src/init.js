@@ -1,4 +1,5 @@
-var player = require('./player.js')
+var player = require('./player')
+var enemy = require('./enemy')
 var _ = require('underscore')
 
 var camera, scene, renderer;
@@ -23,7 +24,9 @@ function init() {
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
+
   player(scene)
+  enemy(scene)
 }
 
 function runLoop() {
