@@ -1,3 +1,5 @@
+var player = require('./player.js')
+
 var camera, scene, renderer;
 var geometry, material, mesh;
 var width = innerWidth * .5
@@ -55,10 +57,10 @@ function addShit() {
     wireframe: true
   }))
 
-  floor.position.y = -150;
+  floor.position.y = -150
   scene.add(floor)
 
-  new THREE.JSONLoader(true).load('/feisar.js', createShip)
+  new THREE.JSONLoader(true).load('models/feisar.js', createShip)
 }
 
 function createMesh(parent, geometry, mat) {
@@ -79,7 +81,6 @@ function scaleBy(x) {
   }
 }
 
-
 function createShip(geometry, materials) {
   ship = createMesh(scene, geometry, materials[0])
   ship.velocity = {x: 0, y: 0}
@@ -96,6 +97,7 @@ function lazer (x) {
   cube.position = p
   scene.add(cube)
 }
+
 function shootLazer() {
   lazer(-100)
   lazer(100)
@@ -109,7 +111,6 @@ document.onkeydown = function (e) {
         39: [1, 0],
         37: [-1, 0]
       }[key]
-  console.log(key)
   if (key == 32) shootLazer()
   if (! nudge) return
   nudge = nudge.map(scaleBy(10))
