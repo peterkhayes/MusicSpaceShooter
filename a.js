@@ -3,10 +3,9 @@ var geometry, material, mesh;
 var width = innerWidth * .5
 
 init();
-animate();
+runLoop();
 
 function init() {
-  clock = new THREE.Clock();
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 );
   camera.position.set(-20.660876025161585,80.96198634158289,702.2238140148065)
@@ -22,11 +21,22 @@ function init() {
   document.body.appendChild( renderer.domElement );
 }
 
-function animate() {
-  requestAnimationFrame( animate );
-  renderer.render( scene, camera );
-
-  window.controls && controls.update(clock.getDelta())
+function runLoop() {
+  requestAnimationFrame(runLoop);
+  renderer.render(scene, camera);
+  if (! window.ship) return
+  if (ship.position.x > 1000) ship.position.x = -1000
+  if (ship.position.y > 560)  ship.position.y = -560
+  if (ship.position.x < - 1000) ship.position.x = 1000
+  if (ship.position.y < - 560)  ship.position.y = 560
+  ship.rotation.z = ship.velocity.x * .05
+  ship.position.x += ship.velocity.x
+  ship.position.y += ship.velocity.y
+  ship.velocity.x *= .9
+  ship.velocity.y *= .9
+  cubes.forEach(function (cube) {
+    cube.position.y += 5
+  })
 }
 
 function addShit() {
@@ -69,16 +79,41 @@ function scaleBy(x) {
   }
 }
 
-function addControls(obj){
-  controls = new THREE.FlyControls(obj)
-  controls.movementSpeed = 1000;
-  controls.rollSpeed = Math.PI / 10;
-  controls.dragToLook = false;
-}
 
 function createShip(geometry, materials) {
   ship = createMesh(scene, geometry, materials[0])
+  ship.velocity = {x: 0, y: 0}
   ship.scale.set(40, 10, 10)
   ship.rotation.set(Math.PI / 2, Math.PI, 0)
-  addControls(ship)
+}
+
+var cubes = []
+function lazer (x) {
+  var cube = new THREE.Mesh(new THREE.CubeGeometry(10, 200, 10),  new THREE.MeshBasicMaterial(0x00FF00))
+  cubes.push(cube)
+  var p = ship.position.clone()
+  p.x += x
+  cube.position = p
+  scene.add(cube)
+}
+function shootLazer() {
+  lazer(-100)
+  lazer(100)
+}
+
+document.onkeydown = function (e) {
+  var key = e.which,
+      nudge = { //up down left right
+        38: [0, 1],
+        40: [0, -1],
+        39: [1, 0],
+        37: [-1, 0]
+      }[key]
+  console.log(key)
+  if (key == 32) shootLazer()
+  if (! nudge) return
+  nudge = nudge.map(scaleBy(10))
+  e.preventDefault()
+  ship.velocity.x += nudge[0]
+  ship.velocity.y += nudge[1]
 }
