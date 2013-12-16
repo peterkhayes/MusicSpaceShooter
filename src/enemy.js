@@ -1,7 +1,7 @@
-
 var ship = require('./ship')
-var _ = require('underscore')
+  , _ = require('underscore')
 
+console.log('fuck')
 var colors = {
   red: [0, .7, .5]
 , orange: [0.083, .7, .5]

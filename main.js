@@ -1279,10 +1279,10 @@
 },{}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
-
 var ship = require('./ship')
-var _ = require('underscore')
+  , _ = require('underscore')
 
+console.log('fuck')
 var colors = {
   red: [0, .7, .5]
 , orange: [0.083, .7, .5]
@@ -1312,13 +1312,14 @@ module.exports = function (scene) {
       var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.step = function (delta) {
-        // ship.position.x = 1000 + Math.random() * 1000
-        // ship.position.y = Math.random() * 1000
+        ship.position.x = 1000 + Math.random() * 1000
+        ship.position.y = Math.random() * 1000
       }
       scene.add(ship)
     })
   })
 }
+
 },{"./ship":7,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
@@ -2948,5 +2949,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[3,4,5,2,6,7,8,9,10])
+},{}]},{},[2,3,4,5,6,7,8,9,10])
 ;
