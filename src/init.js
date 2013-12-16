@@ -8,9 +8,6 @@ var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
 
-init()
-runLoop()
-
 process.bounds = {
   left: 0
 , right: 2099
@@ -18,8 +15,15 @@ process.bounds = {
 , bot: 0
 }
 
+process.mid = [
+  (process.bounds.right - process.bounds.left) >> 1
+, (process.bounds.top - process.bounds.bottom) >> 1
+]
+
+init()
+runLoop()
+
 function init() {
-  template()
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
@@ -31,13 +35,14 @@ function init() {
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = 1400 / 1200
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
 
   player(scene)
   enemy(scene)
+  template()
 }
 
 function runLoop() {
@@ -64,6 +69,6 @@ function buildScene() {
     wireframe: true
   }))
 
-  floor.position.set(100,200)
+  floor.position.x += process.mid[0]
   scene.add(floor)
 }

@@ -2,6 +2,10 @@ var ship = require('./ship')
 var utils = require('./utils')
 
 module.exports = function (scene) {
+  process.env.position = []
+  process.env.rotation = []
+
+
   var player
   ship.load(function (ship) {
     player = extend(ship)
@@ -29,17 +33,19 @@ function extend(player) {
   player.step = step
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
-  //player.position.set()
+  player.position.x = (process.bounds.right - process.bounds.left) / 2
   return player
 }
 
 
 function step () {
-  process.env.position = [this.position.x, this.position.y]
-  // if (this.position.x > 1000) this.position.x = -1000
-  // if (this.position.y > 560)  this.position.y = -560
-  // if (this.position.x < - 1000) this.position.x = 1000
-  // if (this.position.y < - 560)  this.position.y = 560
+  process.env.position = this.position.toArray().slice(0,2)
+  process.env.rotation = [this.rotation.toArray()[2] * 180]
+  var bounds = process.bounds
+  if (this.position.x > bounds.right) this.position.x = process.bounds.left
+  if (this.position.y > bounds.top)  this.position.y = process.bounds.bottom
+  if (this.position.x < -100) this.position.x = bounds.right
+  if (this.position.y < -100)  this.position.y = bounds.left
   this.rotation.z = this.velocity.x * .05
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y

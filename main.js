@@ -1334,9 +1334,6 @@ var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
 
-init()
-runLoop()
-
 process.bounds = {
   left: 0
 , right: 2099
@@ -1344,8 +1341,15 @@ process.bounds = {
 , bot: 0
 }
 
+process.mid = [
+  (process.bounds.right - process.bounds.left) >> 1
+, (process.bounds.top - process.bounds.bottom) >> 1
+]
+
+init()
+runLoop()
+
 function init() {
-  template()
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
@@ -1357,13 +1361,14 @@ function init() {
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = 1400 / 1200
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
 
   player(scene)
   enemy(scene)
+  template()
 }
 
 function runLoop() {
@@ -1390,7 +1395,7 @@ function buildScene() {
     wireframe: true
   }))
 
-  floor.position.set(100,200)
+  floor.position.x += process.mid[0]
   scene.add(floor)
 }
 },{"./enemy":3,"./player":5,"./templates":7,"__browserify_process":14,"underscore":1}],5:[function(require,module,exports){
@@ -1398,6 +1403,10 @@ var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 
 module.exports = function (scene) {
+  process.env.position = []
+  process.env.rotation = []
+
+
   var player
   ship.load(function (ship) {
     player = extend(ship)
@@ -1425,17 +1434,19 @@ function extend(player) {
   player.step = step
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
-  //player.position.set()
+  player.position.x = (process.bounds.right - process.bounds.left) / 2
   return player
 }
 
 
 function step () {
-  process.env.position = [this.position.x, this.position.y]
-  // if (this.position.x > 1000) this.position.x = -1000
-  // if (this.position.y > 560)  this.position.y = -560
-  // if (this.position.x < - 1000) this.position.x = 1000
-  // if (this.position.y < - 560)  this.position.y = 560
+  process.env.position = this.position.toArray().slice(0,2)
+  process.env.rotation = [this.rotation.toArray()[2] * 180]
+  var bounds = process.bounds
+  if (this.position.x > bounds.right) this.position.x = process.bounds.left
+  if (this.position.y > bounds.top)  this.position.y = process.bounds.bottom
+  if (this.position.x < -100) this.position.x = bounds.right
+  if (this.position.y < -100)  this.position.y = bounds.left
   this.rotation.z = this.velocity.x * .05
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
@@ -1494,20 +1505,19 @@ var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
   var env = {}
-
+    console.log(process.env)
   _.each(process.env, function (val, key) {
     var el = document.querySelector('#' + key)
-    if (el) env[key]  = el
+    if (el) env[key] = el
   })
-
   setInterval(function () {
     _.each(env, function (val, key) {
-      env[key].textContent = key + ': ' + process.env[key].map(function (d) { return (''+d).split('.')[0] }).join(', ')
+      env[key].textContent = key + ': ' +
+        process.env[key].map(function (d) { return (''+d).split('.')[0] }).join(', ')
     })
   })
 }
 
-//1400,1200
 },{"__browserify_process":14,"underscore":1}],8:[function(require,module,exports){
 module.exports.scaleBy =
   function (x) {
