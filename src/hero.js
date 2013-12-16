@@ -17,7 +17,7 @@ module.exports = function (scene) {
   var accel = .5
 
   key('left, right, up, down, space', function (e) {
-    var v = hero.velocity, i = 10
+    var v = hero.velocity
     if(key.isPressed("left")) v.x -= accel
     if(key.isPressed("right")) v.x += accel
     if(key.isPressed("up")) v.y += accel

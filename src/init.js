@@ -46,10 +46,11 @@ function init() {
 }
 
 function runLoop() {
+  var delta = clock.getDelta()
   requestAnimationFrame(runLoop);
   renderer.render(scene, camera);
   scene.children.forEach(function (obj) {
-    if (obj.step) obj.step(clock.getDelta())
+    if (obj.step) obj.step(delta)
   })
 }
 

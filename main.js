@@ -1320,7 +1320,83 @@ module.exports = function (scene) {
   })
 }
 },{"./ship":7,"underscore":1}],4:[function(require,module,exports){
-var process=require("__browserify_process");var player = require('./player')
+var process=require("__browserify_process");var ship = require('./ship')
+var utils = require('./utils')
+var key = require('./key')
+
+module.exports = function (scene) {
+  process.env.position = []
+  process.env.rotation = []
+  process.env.velocity = []
+
+
+  var hero
+  ship.load(function (ship) {
+    hero = extend(ship)
+    scene.add(hero)
+  })
+
+  var accel = .5
+
+  key('left, right, up, down, space', function (e) {
+    var v = hero.velocity
+    if(key.isPressed("left")) v.x -= accel
+    if(key.isPressed("right")) v.x += accel
+    if(key.isPressed("up")) v.y += accel
+    if(key.isPressed("down")) v.y -= accel
+    if(key.isPressed("space")) scene.add(hero.shoot())
+  })
+}
+
+function extend(hero) {
+  hero.step = step
+  hero.velocity = new THREE.Vector3()
+  hero.shoot = shoot
+  hero.position.x = (process.bounds.right - process.bounds.left) / 2
+  hero.position.y += 50
+  return hero
+}
+
+
+function step () {
+  process.env.position = this.position.toArray().slice(0,2)
+  process.env.rotation = [this.rotation.toArray()[2] * 180]
+  process.env.velocity = this.velocity.toArray().slice(0, 2)
+  var bounds = process.bounds
+  if (this.position.x > bounds.right) this.position.x = process.bounds.left
+  if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
+  if (this.position.x < -100) this.position.x = bounds.right
+  if (this.position.y < -100)  this.position.y = bounds.left
+  this.velocity.x *= .9
+  this.velocity.y *= .9
+  this.position.x += this.velocity.x
+  this.position.y += this.velocity.y
+  this.rotation.z = this.velocity.x * .005
+}
+
+
+var cubes = []
+function lazer () {
+  return new THREE.Mesh(new THREE.CubeGeometry(10, 200, 10),  new THREE.MeshBasicMaterial(0x00FF00))
+}
+
+function shoot() {
+  var hero = this
+  return [-50, 50].forEach(function (offsetX) {
+           var beam = lazer()
+           beam.position = hero.position.clone()
+           beam.position.x += offsetX
+           beam.step = function () {
+             (beam.position.y *= 1.2) > 1000 &&
+               beam.parent.remove(beam)
+             beam.position.y += 1
+           }
+           hero.parent.add(beam)
+         })
+}
+
+},{"./key":6,"./ship":7,"./utils":9,"__browserify_process":15}],5:[function(require,module,exports){
+var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
 var _ = require('underscore')
@@ -1362,16 +1438,17 @@ function init() {
 
   document.body.appendChild( renderer.domElement );
 
-  player(scene)
+  hero(scene)
   enemy(scene)
   template()
 }
 
 function runLoop() {
+  var delta = clock.getDelta()
   requestAnimationFrame(runLoop);
   renderer.render(scene, camera);
   scene.children.forEach(function (obj) {
-    if (obj.step) obj.step(clock.getDelta())
+    if (obj.step) obj.step(delta)
   })
 }
 
@@ -1394,7 +1471,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./player":6,"./templates":8,"__browserify_process":14,"underscore":1}],5:[function(require,module,exports){
+},{"./enemy":3,"./hero":4,"./templates":8,"__browserify_process":15,"underscore":1}],6:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//     keymaster.js
 //     (c) 2011-2013 Thomas Fuchs
 //     keymaster.js may be freely distributed under the MIT license.
@@ -1692,81 +1769,7 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
 })(global);
 
-},{}],6:[function(require,module,exports){
-var process=require("__browserify_process");var ship = require('./ship')
-var utils = require('./utils')
-var key = require('./key')
-
-module.exports = function (scene) {
-  process.env.position = []
-  process.env.rotation = []
-  process.env.velocity = []
-
-
-  var player
-  ship.load(function (ship) {
-    player = extend(ship)
-    scene.add(player)
-  })
-
-  key('left, right, up, down, space', function (e) {
-    var v = player.velocity, i = 10
-    if(key.isPressed("left")) v.x = (v.x * 1.1) + -i
-    if(key.isPressed("right")) v.x = (v.x * 1.1) + i
-    if(key.isPressed("up")) v.y = (v.y * 1.1) + i
-    if(key.isPressed("down")) v.y = v.y + -i
-    if(key.isPressed("space")) scene.add(player.shoot())
-  })
-}
-
-function extend(player) {
-  player.step = step
-  player.velocity = new THREE.Vector3()
-  player.shoot = shoot
-  player.position.x = (process.bounds.right - process.bounds.left) / 2
-  player.position.y += 50
-  return player
-}
-
-
-function step () {
-  process.env.position = this.position.toArray().slice(0,2)
-  process.env.rotation = [this.rotation.toArray()[2] * 180]
-  process.env.velocity = this.velocity.toArray().slice(0, 2)
-  var bounds = process.bounds
-  if (this.position.x > bounds.right) this.position.x = process.bounds.left
-  if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
-  if (this.position.x < -100) this.position.x = bounds.right
-  if (this.position.y < -100)  this.position.y = bounds.left
-  this.position.x += this.velocity.x * .4
-  this.position.y += this.velocity.y * .2
-  this.velocity.x *= .95
-  this.velocity.y *= .95
-  this.rotation.z = this.velocity.x * .005
-}
-
-
-var cubes = []
-function lazer () {
-  return new THREE.Mesh(new THREE.CubeGeometry(10, 200, 10),  new THREE.MeshBasicMaterial(0x00FF00))
-}
-
-function shoot() {
-  var player = this
-  return [-50, 50].forEach(function (offsetX) {
-           var beam = lazer()
-           beam.position = player.position.clone()
-           beam.position.x += offsetX
-           beam.step = function () {
-             (beam.position.y *= 1.2) > 1000 &&
-               beam.parent.remove(beam)
-             beam.position.y += 1
-           }
-           player.parent.add(beam)
-         })
-}
-
-},{"./key":5,"./ship":7,"./utils":9,"__browserify_process":14}],7:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
@@ -1809,7 +1812,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":14,"underscore":1}],9:[function(require,module,exports){
+},{"__browserify_process":15,"underscore":1}],9:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2950,5 +2953,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[2,3,4,6,7,9,10])
+},{}],15:[function(require,module,exports){
+module.exports=require(14)
+},{}]},{},[3,4,5,2,6,7,8,9,10])
 ;
