@@ -1357,7 +1357,7 @@ function init() {
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = 480 / 640
+  camera.aspect = (480 / 640) * 2
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
@@ -1709,10 +1709,11 @@ module.exports = function (scene) {
   })
 
   key('left, right, up, down, space', function (e) {
-    if(key.isPressed("left")) player.velocity.x += -100
-    if(key.isPressed("right")) player.velocity.x += 100
-    if(key.isPressed("up")) player.velocity.y += 100
-    if(key.isPressed("down")) player.velocity.y += -100
+    var v = player.velocity, i = 10
+    if(key.isPressed("left")) v.x = (v.x * 1.1) + -i
+    if(key.isPressed("right")) v.x = (v.x * 1.1) + i
+    if(key.isPressed("up")) v.y = (v.y * 1.1) + i
+    if(key.isPressed("down")) v.y = v.y + -i
     if(key.isPressed("space")) scene.add(player.shoot())
   })
 }
@@ -1735,11 +1736,11 @@ function step () {
   if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
   if (this.position.x < -100) this.position.x = bounds.right
   if (this.position.y < -100)  this.position.y = bounds.left
-  this.rotation.z = this.velocity.x * .9
-  this.position.x += this.velocity.x
-  this.position.y += this.velocity.y
-  this.velocity.x *= .1
-  this.velocity.y *= .1
+  this.position.x += this.velocity.x * .4
+  this.position.y += this.velocity.y * .2
+  this.velocity.x *= .95
+  this.velocity.y *= .95
+  this.rotation.z = this.velocity.x * .005
 }
 
 

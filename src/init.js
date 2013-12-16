@@ -35,7 +35,7 @@ function init() {
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = 480 / 640
+  camera.aspect = (480 / 640) * 2
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
