@@ -31,8 +31,8 @@ module.exports = function (scene) {
       var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.step = function (delta) {
-        // ship.position.x = 1000 + Math.random() * 1000
-        // ship.position.y = Math.random() * 1000
+        ship.position.x = 1000 + Math.random() * 1000
+        ship.position.y = Math.random() * 1000
       }
       scene.add(ship)
     })
