@@ -23,15 +23,15 @@ function circular(arr) {
 }
 
 var vals = _.values(colors)
-var eeny = circular(vals)
+var pickColor = circular(vals)
 
 module.exports = function (scene) {
-   _.range(30).forEach(function (i) {
+  _.range(10).forEach(function (index) {
     ship.load(function (ship) {
-      var c = eeny()
+      var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
-      ship.step = function () {
-        // 1000 + ship.position.x = Math.random() * 1000
+      ship.step = function (delta) {
+        // ship.position.x = 1000 + Math.random() * 1000
         // ship.position.y = Math.random() * 1000
       }
       scene.add(ship)

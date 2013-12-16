@@ -1304,15 +1304,15 @@ function circular(arr) {
 }
 
 var vals = _.values(colors)
-var eeny = circular(vals)
+var pickColor = circular(vals)
 
 module.exports = function (scene) {
-   _.range(30).forEach(function (i) {
+  _.range(10).forEach(function (index) {
     ship.load(function (ship) {
-      var c = eeny()
+      var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
-      ship.step = function () {
-        // 1000 + ship.position.x = Math.random() * 1000
+      ship.step = function (delta) {
+        // ship.position.x = 1000 + Math.random() * 1000
         // ship.position.y = Math.random() * 1000
       }
       scene.add(ship)
@@ -1389,7 +1389,7 @@ function shoot() {
          })
 }
 
-},{"./key":6,"./ship":7,"./utils":9,"__browserify_process":15}],5:[function(require,module,exports){
+},{"./key":6,"./ship":7,"./utils":9,"__browserify_process":14}],5:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1411,7 +1411,6 @@ process.mid = [
   (process.bounds.right - process.bounds.left) >> 1
 , (process.bounds.top - process.bounds.bottom) >> 1
 ]
-
 init()
 runLoop()
 
@@ -1431,6 +1430,7 @@ function init() {
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
+  process.env.fps = [0]
 
   hero(scene)
   enemy(scene)
@@ -1439,6 +1439,7 @@ function init() {
 
 function runLoop() {
   var delta = clock.getDelta()
+  if(Math.random() > .9) process.env.fps = [delta * 1000]
   requestAnimationFrame(runLoop);
   renderer.render(scene, camera);
   scene.children.forEach(function (obj) {
@@ -1465,7 +1466,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./hero":4,"./templates":8,"__browserify_process":15,"underscore":1}],6:[function(require,module,exports){
+},{"./enemy":3,"./hero":4,"./templates":8,"__browserify_process":14,"underscore":1}],6:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//     keymaster.js
 //     (c) 2011-2013 Thomas Fuchs
 //     keymaster.js may be freely distributed under the MIT license.
@@ -1806,7 +1807,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":15,"underscore":1}],9:[function(require,module,exports){
+},{"__browserify_process":14,"underscore":1}],9:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2947,7 +2948,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],15:[function(require,module,exports){
-module.exports=require(14)
 },{}]},{},[3,4,5,2,6,7,8,9,10])
 ;

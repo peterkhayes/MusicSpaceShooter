@@ -19,7 +19,6 @@ process.mid = [
   (process.bounds.right - process.bounds.left) >> 1
 , (process.bounds.top - process.bounds.bottom) >> 1
 ]
-
 init()
 runLoop()
 
@@ -39,6 +38,7 @@ function init() {
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
+  process.env.fps = [0]
 
   hero(scene)
   enemy(scene)
@@ -47,6 +47,7 @@ function init() {
 
 function runLoop() {
   var delta = clock.getDelta()
+  if(Math.random() > .9) process.env.fps = [delta * 1000]
   requestAnimationFrame(runLoop);
   renderer.render(scene, camera);
   scene.children.forEach(function (obj) {
