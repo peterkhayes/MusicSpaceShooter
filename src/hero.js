@@ -43,7 +43,7 @@ function step () {
   this.velocity.y *= .9
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
-  this.rotation.z = this.velocity.x * .005
+  this.rotation.z = this.velocity.x * .015
 }
 
 
