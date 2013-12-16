@@ -1,3 +1,4 @@
+
 var ship = require('./ship')
 var _ = require('underscore')
 
@@ -25,18 +26,13 @@ var vals = _.values(colors)
 var eeny = circular(vals)
 
 module.exports = function (scene) {
-  return;
-  _.range(30).forEach(function (i) {
+   _.range(30).forEach(function (i) {
     ship.load(function (ship) {
       var c = eeny()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.step = function () {
-        if (Math.random() < .9) return
-        ship.position.set(
-          Math.random() * 400,
-          Math.random() * 400,
-          0
-        )
+        // 1000 + ship.position.x = Math.random() * 1000
+        // ship.position.y = Math.random() * 1000
       }
       scene.add(ship)
     })

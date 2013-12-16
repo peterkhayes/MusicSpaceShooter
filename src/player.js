@@ -1,5 +1,6 @@
 var ship = require('./ship')
 var utils = require('./utils')
+var key = require('./key')
 
 module.exports = function (scene) {
   process.env.position = []
@@ -12,21 +13,13 @@ module.exports = function (scene) {
     scene.add(player)
   })
 
-  document.onkeydown = function (e) {
-    var key = e.which,
-        nudge = { //up down left right
-          38: [0, 1],
-          40: [0, -1],
-          39: [1, 0],
-          37: [-1, 0]
-        }[key]
-    if (key == 32) scene.add(player.shoot())
-    if (! nudge) return
-    nudge = nudge.map(utils.scaleBy(10))
-    e.preventDefault()
-    player.velocity.x += nudge[0]
-    player.velocity.y += nudge[1]
-  }
+  key('left, right, up, down, space', function (e) {
+    if(key.isPressed("left")) player.velocity.x += -100
+    if(key.isPressed("right")) player.velocity.x += 100
+    if(key.isPressed("up")) player.velocity.y += 100
+    if(key.isPressed("down")) player.velocity.y += -100
+    if(key.isPressed("space")) scene.add(player.shoot())
+  })
 }
 
 function extend(player) {
@@ -34,6 +27,7 @@ function extend(player) {
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
   player.position.x = (process.bounds.right - process.bounds.left) / 2
+  player.position.y += 50
   return player
 }
 
@@ -43,14 +37,14 @@ function step () {
   process.env.rotation = [this.rotation.toArray()[2] * 180]
   var bounds = process.bounds
   if (this.position.x > bounds.right) this.position.x = process.bounds.left
-  if (this.position.y > bounds.top)  this.position.y = process.bounds.bottom
+  if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
   if (this.position.x < -100) this.position.x = bounds.right
   if (this.position.y < -100)  this.position.y = bounds.left
-  this.rotation.z = this.velocity.x * .05
+  this.rotation.z = this.velocity.x * .9
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
-  this.velocity.x *= .9
-  this.velocity.y *= .9
+  this.velocity.x *= .1
+  this.velocity.y *= .1
 }
 
 

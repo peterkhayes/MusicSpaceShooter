@@ -1279,6 +1279,7 @@
 },{}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
+
 var ship = require('./ship')
 var _ = require('underscore')
 
@@ -1306,24 +1307,19 @@ var vals = _.values(colors)
 var eeny = circular(vals)
 
 module.exports = function (scene) {
-  return;
-  _.range(30).forEach(function (i) {
+   _.range(30).forEach(function (i) {
     ship.load(function (ship) {
       var c = eeny()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.step = function () {
-        if (Math.random() < .9) return
-        ship.position.set(
-          Math.random() * 400,
-          Math.random() * 400,
-          0
-        )
+        // 1000 + ship.position.x = Math.random() * 1000
+        // ship.position.y = Math.random() * 1000
       }
       scene.add(ship)
     })
   })
 }
-},{"./ship":6,"underscore":1}],4:[function(require,module,exports){
+},{"./ship":7,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var player = require('./player')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1353,7 +1349,7 @@ function init() {
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(1000, 600, 702)
+  camera.position.set(1000, 650, 702)
   camera.rotation.set(-0.11478688891932705,-0.029220126927448863,-0.003368404667652551)
 
   renderer = new THREE.WebGLRenderer();
@@ -1361,7 +1357,7 @@ function init() {
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = 1400 / 1200
+  camera.aspect = 480 / 640
   camera.updateProjectionMatrix();
 
   document.body.appendChild( renderer.domElement );
@@ -1398,9 +1394,308 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./player":5,"./templates":7,"__browserify_process":14,"underscore":1}],5:[function(require,module,exports){
+},{"./enemy":3,"./player":6,"./templates":8,"__browserify_process":15,"underscore":1}],5:[function(require,module,exports){
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//     keymaster.js
+//     (c) 2011-2013 Thomas Fuchs
+//     keymaster.js may be freely distributed under the MIT license.
+
+;(function(global){
+  var k,
+    _handlers = {},
+    _mods = { 16: false, 18: false, 17: false, 91: false },
+    _scope = 'all',
+    // modifier keys
+    _MODIFIERS = {
+      '⇧': 16, shift: 16,
+      '⌥': 18, alt: 18, option: 18,
+      '⌃': 17, ctrl: 17, control: 17,
+      '⌘': 91, command: 91
+    },
+    // special keys
+    _MAP = {
+      backspace: 8, tab: 9, clear: 12,
+      enter: 13, 'return': 13,
+      esc: 27, escape: 27, space: 32,
+      left: 37, up: 38,
+      right: 39, down: 40,
+      del: 46, 'delete': 46,
+      home: 36, end: 35,
+      pageup: 33, pagedown: 34,
+      ',': 188, '.': 190, '/': 191,
+      '`': 192, '-': 189, '=': 187,
+      ';': 186, '\'': 222,
+      '[': 219, ']': 221, '\\': 220
+    },
+    code = function(x){
+      return _MAP[x] || x.toUpperCase().charCodeAt(0);
+    },
+    _downKeys = [];
+
+  for(k=1;k<20;k++) _MAP['f'+k] = 111+k;
+
+  // IE doesn't support Array#indexOf, so have a simple replacement
+  function index(array, item){
+    var i = array.length;
+    while(i--) if(array[i]===item) return i;
+    return -1;
+  }
+
+  // for comparing mods before unassignment
+  function compareArray(a1, a2) {
+    if (a1.length != a2.length) return false;
+    for (var i = 0; i < a1.length; i++) {
+        if (a1[i] !== a2[i]) return false;
+    }
+    return true;
+  }
+
+  var modifierMap = {
+      16:'shiftKey',
+      18:'altKey',
+      17:'ctrlKey',
+      91:'metaKey'
+  };
+  function updateModifierKey(event) {
+      for(k in _mods) _mods[k] = event[modifierMap[k]];
+  };
+
+  // handle keydown event
+  function dispatch(event) {
+    var key, handler, k, i, modifiersMatch, scope;
+    key = event.keyCode;
+
+    if (index(_downKeys, key) == -1) {
+        _downKeys.push(key);
+    }
+
+    // if a modifier key, set the key.<modifierkeyname> property to true and return
+    if(key == 93 || key == 224) key = 91; // right command on webkit, command on Gecko
+    if(key in _mods) {
+      _mods[key] = true;
+      // 'assignKey' from inside this closure is exported to window.key
+      for(k in _MODIFIERS) if(_MODIFIERS[k] == key) assignKey[k] = true;
+      return;
+    }
+    updateModifierKey(event);
+
+    // see if we need to ignore the keypress (filter() can can be overridden)
+    // by default ignore key presses if a select, textarea, or input is focused
+    if(!assignKey.filter.call(this, event)) return;
+
+    // abort if no potentially matching shortcuts found
+    if (!(key in _handlers)) return;
+
+    scope = getScope();
+
+    // for each potential shortcut
+    for (i = 0; i < _handlers[key].length; i++) {
+      handler = _handlers[key][i];
+
+      // see if it's in the current scope
+      if(handler.scope == scope || handler.scope == 'all'){
+        // check if modifiers match if any
+        modifiersMatch = handler.mods.length > 0;
+        for(k in _mods)
+          if((!_mods[k] && index(handler.mods, +k) > -1) ||
+            (_mods[k] && index(handler.mods, +k) == -1)) modifiersMatch = false;
+        // call the handler and stop the event if neccessary
+        if((handler.mods.length == 0 && !_mods[16] && !_mods[18] && !_mods[17] && !_mods[91]) || modifiersMatch){
+          if(handler.method(event, handler)===false){
+            if(event.preventDefault) event.preventDefault();
+              else event.returnValue = false;
+            if(event.stopPropagation) event.stopPropagation();
+            if(event.cancelBubble) event.cancelBubble = true;
+          }
+        }
+      }
+    }
+  };
+
+  // unset modifier keys on keyup
+  function clearModifier(event){
+    var key = event.keyCode, k,
+        i = index(_downKeys, key);
+
+    // remove key from _downKeys
+    if (i >= 0) {
+        _downKeys.splice(i, 1);
+    }
+
+    if(key == 93 || key == 224) key = 91;
+    if(key in _mods) {
+      _mods[key] = false;
+      for(k in _MODIFIERS) if(_MODIFIERS[k] == key) assignKey[k] = false;
+    }
+  };
+
+  function resetModifiers() {
+    for(k in _mods) _mods[k] = false;
+    for(k in _MODIFIERS) assignKey[k] = false;
+  };
+
+  // parse and assign shortcut
+  function assignKey(key, scope, method){
+    var keys, mods;
+    keys = getKeys(key);
+    if (method === undefined) {
+      method = scope;
+      scope = 'all';
+    }
+
+    // for each shortcut
+    for (var i = 0; i < keys.length; i++) {
+      // set modifier keys if any
+      mods = [];
+      key = keys[i].split('+');
+      if (key.length > 1){
+        mods = getMods(key);
+        key = [key[key.length-1]];
+      }
+      // convert to keycode and...
+      key = key[0]
+      key = code(key);
+      // ...store handler
+      if (!(key in _handlers)) _handlers[key] = [];
+      _handlers[key].push({ shortcut: keys[i], scope: scope, method: method, key: keys[i], mods: mods });
+    }
+  };
+
+  // unbind all handlers for given key in current scope
+  function unbindKey(key, scope) {
+    var multipleKeys, keys,
+      mods = [],
+      i, j, obj;
+
+    multipleKeys = getKeys(key);
+
+    for (j = 0; j < multipleKeys.length; j++) {
+      keys = multipleKeys[j].split('+');
+
+      if (keys.length > 1) {
+        mods = getMods(keys);
+        key = keys[keys.length - 1];
+      }
+
+      key = code(key);
+
+      if (scope === undefined) {
+        scope = getScope();
+      }
+      if (!_handlers[key]) {
+        return;
+      }
+      for (i in _handlers[key]) {
+        obj = _handlers[key][i];
+        // only clear handlers if correct scope and mods match
+        if (obj.scope === scope && compareArray(obj.mods, mods)) {
+          _handlers[key][i] = {};
+        }
+      }
+    }
+  };
+
+  // Returns true if the key with code 'keyCode' is currently down
+  // Converts strings into key codes.
+  function isPressed(keyCode) {
+      if (typeof(keyCode)=='string') {
+        keyCode = code(keyCode);
+      }
+      return index(_downKeys, keyCode) != -1;
+  }
+
+  function getPressedKeyCodes() {
+      return _downKeys.slice(0);
+  }
+
+  function filter(event){
+    var tagName = (event.target || event.srcElement).tagName;
+    // ignore keypressed in any elements that support keyboard data input
+    return !(tagName == 'INPUT' || tagName == 'SELECT' || tagName == 'TEXTAREA');
+  }
+
+  // initialize key.<modifier> to false
+  for(k in _MODIFIERS) assignKey[k] = false;
+
+  // set current scope (default 'all')
+  function setScope(scope){ _scope = scope || 'all' };
+  function getScope(){ return _scope || 'all' };
+
+  // delete all handlers for a given scope
+  function deleteScope(scope){
+    var key, handlers, i;
+
+    for (key in _handlers) {
+      handlers = _handlers[key];
+      for (i = 0; i < handlers.length; ) {
+        if (handlers[i].scope === scope) handlers.splice(i, 1);
+        else i++;
+      }
+    }
+  };
+
+  // abstract key logic for assign and unassign
+  function getKeys(key) {
+    var keys;
+    key = key.replace(/\s/g, '');
+    keys = key.split(',');
+    if ((keys[keys.length - 1]) == '') {
+      keys[keys.length - 2] += ',';
+    }
+    return keys;
+  }
+
+  // abstract mods logic for assign and unassign
+  function getMods(key) {
+    var mods = key.slice(0, key.length - 1);
+    for (var mi = 0; mi < mods.length; mi++)
+    mods[mi] = _MODIFIERS[mods[mi]];
+    return mods;
+  }
+
+  // cross-browser events
+  function addEvent(object, event, method) {
+    if (object.addEventListener)
+      object.addEventListener(event, method, false);
+    else if(object.attachEvent)
+      object.attachEvent('on'+event, function(){ method(window.event) });
+  };
+
+  // set the handlers globally on document
+  addEvent(document, 'keydown', function(event) { dispatch(event) }); // Passing _scope to a callback to ensure it remains the same by execution. Fixes #48
+  addEvent(document, 'keyup', clearModifier);
+
+  // reset modifiers to false whenever the window is (re)focused.
+  addEvent(window, 'focus', resetModifiers);
+
+  // store previously defined key
+  var previousKey = global.key;
+
+  // restore previously defined key and return reference to our key object
+  function noConflict() {
+    var k = global.key;
+    global.key = previousKey;
+    return k;
+  }
+
+  // set window.key and window.key.set/get/deleteScope, and the default filter
+  global.key = assignKey;
+  global.key.setScope = setScope;
+  global.key.getScope = getScope;
+  global.key.deleteScope = deleteScope;
+  global.key.filter = filter;
+  global.key.isPressed = isPressed;
+  global.key.getPressedKeyCodes = getPressedKeyCodes;
+  global.key.noConflict = noConflict;
+  global.key.unbind = unbindKey;
+
+  if(typeof module !== 'undefined') module.exports = key;
+
+})(global);
+
+},{}],6:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
+var key = require('./key')
 
 module.exports = function (scene) {
   process.env.position = []
@@ -1413,21 +1708,13 @@ module.exports = function (scene) {
     scene.add(player)
   })
 
-  document.onkeydown = function (e) {
-    var key = e.which,
-        nudge = { //up down left right
-          38: [0, 1],
-          40: [0, -1],
-          39: [1, 0],
-          37: [-1, 0]
-        }[key]
-    if (key == 32) scene.add(player.shoot())
-    if (! nudge) return
-    nudge = nudge.map(utils.scaleBy(10))
-    e.preventDefault()
-    player.velocity.x += nudge[0]
-    player.velocity.y += nudge[1]
-  }
+  key('left, right, up, down, space', function (e) {
+    if(key.isPressed("left")) player.velocity.x += -100
+    if(key.isPressed("right")) player.velocity.x += 100
+    if(key.isPressed("up")) player.velocity.y += 100
+    if(key.isPressed("down")) player.velocity.y += -100
+    if(key.isPressed("space")) scene.add(player.shoot())
+  })
 }
 
 function extend(player) {
@@ -1435,6 +1722,7 @@ function extend(player) {
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
   player.position.x = (process.bounds.right - process.bounds.left) / 2
+  player.position.y += 50
   return player
 }
 
@@ -1444,14 +1732,14 @@ function step () {
   process.env.rotation = [this.rotation.toArray()[2] * 180]
   var bounds = process.bounds
   if (this.position.x > bounds.right) this.position.x = process.bounds.left
-  if (this.position.y > bounds.top)  this.position.y = process.bounds.bottom
+  if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
   if (this.position.x < -100) this.position.x = bounds.right
   if (this.position.y < -100)  this.position.y = bounds.left
-  this.rotation.z = this.velocity.x * .05
+  this.rotation.z = this.velocity.x * .9
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
-  this.velocity.x *= .9
-  this.velocity.y *= .9
+  this.velocity.x *= .1
+  this.velocity.y *= .1
 }
 
 
@@ -1475,7 +1763,7 @@ function shoot() {
          })
 }
 
-},{"./ship":6,"./utils":8,"__browserify_process":14}],6:[function(require,module,exports){
+},{"./key":5,"./ship":7,"./utils":9,"__browserify_process":15}],7:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
@@ -1500,7 +1788,7 @@ function createShip() {
   return ship
 }
 
-},{"events":11,"underscore":1}],7:[function(require,module,exports){
+},{"events":12,"underscore":1}],8:[function(require,module,exports){
 var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
@@ -1518,7 +1806,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":14,"underscore":1}],8:[function(require,module,exports){
+},{"__browserify_process":15,"underscore":1}],9:[function(require,module,exports){
 module.exports.scaleBy =
   function (x) {
   return function (y) {
@@ -1526,9 +1814,9 @@ module.exports.scaleBy =
   }
 }
 
-},{}],9:[function(require,module,exports){
-module.exports=require(2)
 },{}],10:[function(require,module,exports){
+module.exports=require(2)
+},{}],11:[function(require,module,exports){
 
 
 //
@@ -1746,7 +2034,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2027,7 +2315,7 @@ EventEmitter.listenerCount = function(emitter, type) {
     ret = emitter._events[type].length;
   return ret;
 };
-},{"util":12}],12:[function(require,module,exports){
+},{"util":13}],13:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2572,7 +2860,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":10}],13:[function(require,module,exports){
+},{"_shims":11}],14:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -2626,7 +2914,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],14:[function(require,module,exports){
-module.exports=require(13)
-},{}]},{},[2,3,4,5,6,8,9])
+},{}],15:[function(require,module,exports){
+module.exports=require(14)
+},{}]},{},[2,3,4,6,7,9,10])
 ;
