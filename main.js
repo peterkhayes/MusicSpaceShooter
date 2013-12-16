@@ -1394,7 +1394,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./player":6,"./templates":8,"__browserify_process":15,"underscore":1}],5:[function(require,module,exports){
+},{"./enemy":3,"./player":6,"./templates":8,"__browserify_process":14,"underscore":1}],5:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//     keymaster.js
 //     (c) 2011-2013 Thomas Fuchs
 //     keymaster.js may be freely distributed under the MIT license.
@@ -1700,6 +1700,7 @@ var key = require('./key')
 module.exports = function (scene) {
   process.env.position = []
   process.env.rotation = []
+  process.env.velocity = []
 
 
   var player
@@ -1731,6 +1732,7 @@ function extend(player) {
 function step () {
   process.env.position = this.position.toArray().slice(0,2)
   process.env.rotation = [this.rotation.toArray()[2] * 180]
+  process.env.velocity = this.velocity.toArray().slice(0, 2)
   var bounds = process.bounds
   if (this.position.x > bounds.right) this.position.x = process.bounds.left
   if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
@@ -1764,7 +1766,7 @@ function shoot() {
          })
 }
 
-},{"./key":5,"./ship":7,"./utils":9,"__browserify_process":15}],7:[function(require,module,exports){
+},{"./key":5,"./ship":7,"./utils":9,"__browserify_process":14}],7:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
@@ -1807,14 +1809,47 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":15,"underscore":1}],9:[function(require,module,exports){
-module.exports.scaleBy =
-  function (x) {
+},{"__browserify_process":14,"underscore":1}],9:[function(require,module,exports){
+var utils = {}
+
+utils.scaleBy = function (x) {
   return function (y) {
     return x * y
   }
 }
 
+
+utils.distance = function(x1, y1, x2, y2) {
+  var xd = x1 - x2, yd = y1 - y2
+  return (xd * xd) + yd * yd
+}
+
+utils.rectInRect = function(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
+  return ! (r2x > r1x + r1w ||
+            r2x + r2w < r1x ||
+            r2y > r1y + r1h ||
+            r2y + r2h < r1y)
+}
+
+utils.arcInRect = function(ax, ay, ar, rx, ry, rw, rh) {
+  return ! (ax + ar <= rx || ax - ar >= rx + rw || ay + ar <= ry || ay - ar >= ry + rh)
+}
+
+utils.arcIntersectingRect = function(ax, ay, ar, rx, ry, rw, rh) {
+  return ! (ax <= rx - ar ||
+            ax >= rx + rw + ar ||
+            ay <= ry - ar ||
+            ay >= ry + rh + ar)
+}
+
+utils.pointInRect = function(px, py, rx, ry, rw, rh) {
+  return px >= rx &&
+    px <= rx + rw &&
+    py >= ry &&
+    py <= ry + rh
+}
+
+module.exports = utils
 },{}],10:[function(require,module,exports){
 module.exports=require(2)
 },{}],11:[function(require,module,exports){
@@ -2915,7 +2950,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],15:[function(require,module,exports){
-module.exports=require(14)
 },{}]},{},[2,3,4,6,7,9,10])
 ;

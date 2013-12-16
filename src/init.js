@@ -1,4 +1,4 @@
-var player = require('./player')
+var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
 var _ = require('underscore')
@@ -40,7 +40,7 @@ function init() {
 
   document.body.appendChild( renderer.domElement );
 
-  player(scene)
+  hero(scene)
   enemy(scene)
   template()
 }
