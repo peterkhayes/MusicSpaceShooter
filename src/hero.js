@@ -7,22 +7,8 @@ module.exports = function (scene) {
   process.env.rotation = []
   process.env.velocity = []
 
-
-  var hero
   ship.load(function (ship) {
-    hero = extend(ship)
-    scene.add(hero)
-  })
-
-  var accel = .5
-
-  key('left, right, up, down, space', function (e) {
-    var v = hero.velocity
-    if(key.isPressed("left")) v.x -= accel
-    if(key.isPressed("right")) v.x += accel
-    if(key.isPressed("up")) v.y += accel
-    if(key.isPressed("down")) v.y -= accel
-    if(key.isPressed("space")) scene.add(hero.shoot())
+    scene.add(extend(ship))
   })
 }
 
@@ -41,6 +27,14 @@ function step () {
   process.env.rotation = [this.rotation.toArray()[2] * 180]
   process.env.velocity = this.velocity.toArray().slice(0, 2)
   var bounds = process.bounds
+  var v = this.velocity
+  var fwa = 1
+  var sa = 2
+  if(key.isPressed("left")) v.x -= sa
+  if(key.isPressed("right")) v.x += sa
+  if(key.isPressed("up")) v.y += fwa
+  if(key.isPressed("down")) v.y -= fwa
+  if(key.isPressed("space")) this.parent.add(this.shoot())
   if (this.position.x > bounds.right) this.position.x = process.bounds.left
   if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
   if (this.position.x < -100) this.position.x = bounds.right
