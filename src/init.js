@@ -1,23 +1,34 @@
 var player = require('./player')
 var enemy = require('./enemy')
+var template = require('./templates')
 var _ = require('underscore')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
-init();
-runLoop();
+
+init()
+runLoop()
+
+process.bounds = {
+  left: 0
+, right: 2099
+, top: 1100
+, bot: 0
+}
 
 function init() {
+  template()
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(-20.660876025161585,80.96198634158289,702.2238140148065)
+  camera.position.set(1000, 600, 702)
   camera.rotation.set(-0.11478688891932705,-0.029220126927448863,-0.003368404667652551)
 
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize( window.innerWidth * .5, window.innerHeight );
+
+  renderer.setSize(480, 640);
 
   buildScene()
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -53,6 +64,6 @@ function buildScene() {
     wireframe: true
   }))
 
-  floor.position.y = -150
+  floor.position.set(100,200)
   scene.add(floor)
 }

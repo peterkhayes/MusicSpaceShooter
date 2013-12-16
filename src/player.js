@@ -25,19 +25,21 @@ module.exports = function (scene) {
   }
 }
 
-
 function extend(player) {
   player.step = step
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
+  //player.position.set()
   return player
 }
 
+
 function step () {
-  if (this.position.x > 1000) this.position.x = -1000
-  if (this.position.y > 560)  this.position.y = -560
-  if (this.position.x < - 1000) this.position.x = 1000
-  if (this.position.y < - 560)  this.position.y = 560
+  process.env.position = [this.position.x, this.position.y]
+  // if (this.position.x > 1000) this.position.x = -1000
+  // if (this.position.y > 560)  this.position.y = -560
+  // if (this.position.x < - 1000) this.position.x = 1000
+  // if (this.position.y < - 560)  this.position.y = 560
   this.rotation.z = this.velocity.x * .05
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
@@ -53,12 +55,14 @@ function lazer () {
 
 function shoot() {
   var player = this
-  return [-100, 100].forEach(function (offsetX) {
+  return [-50, 50].forEach(function (offsetX) {
            var beam = lazer()
            beam.position = player.position.clone()
            beam.position.x += offsetX
            beam.step = function () {
-             beam.position.y += 5
+             (beam.position.y *= 1.2) > 1000 &&
+               beam.parent.remove(beam)
+             beam.position.y += 1
            }
            player.parent.add(beam)
          })

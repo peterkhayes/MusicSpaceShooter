@@ -1291,9 +1291,10 @@ var colors = {
 , purple: [.75, .7, .5]
 }
 
-_.mixin({choice: function (arr) {
-           return arr[~~ (Math.random() * arr.length - 1)]
-         }})
+_.mixin({ choice: function (arr) {
+            return arr[~~ (Math.random() * arr.length - 1)]
+          }})
+
 function circular(arr) {
   var i = 0, l = arr.length - 1
   return function () {
@@ -1301,11 +1302,11 @@ function circular(arr) {
   }
 }
 
-
 var vals = _.values(colors)
 var eeny = circular(vals)
 
 module.exports = function (scene) {
+  return;
   _.range(30).forEach(function (i) {
     ship.load(function (ship) {
       var c = eeny()
@@ -1323,26 +1324,37 @@ module.exports = function (scene) {
   })
 }
 },{"./ship":6,"underscore":1}],4:[function(require,module,exports){
-var player = require('./player')
+var process=require("__browserify_process");var player = require('./player')
 var enemy = require('./enemy')
+var template = require('./templates')
 var _ = require('underscore')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
-init();
-runLoop();
+
+init()
+runLoop()
+
+process.bounds = {
+  left: 0
+, right: 2099
+, top: 1100
+, bot: 0
+}
 
 function init() {
+  template()
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(-20.660876025161585,80.96198634158289,702.2238140148065)
+  camera.position.set(1000, 600, 702)
   camera.rotation.set(-0.11478688891932705,-0.029220126927448863,-0.003368404667652551)
 
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize( window.innerWidth * .5, window.innerHeight );
+
+  renderer.setSize(480, 640);
 
   buildScene()
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -1378,11 +1390,11 @@ function buildScene() {
     wireframe: true
   }))
 
-  floor.position.y = -150
+  floor.position.set(100,200)
   scene.add(floor)
 }
-},{"./enemy":3,"./player":5,"underscore":1}],5:[function(require,module,exports){
-var ship = require('./ship')
+},{"./enemy":3,"./player":5,"./templates":7,"__browserify_process":14,"underscore":1}],5:[function(require,module,exports){
+var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 
 module.exports = function (scene) {
@@ -1409,19 +1421,21 @@ module.exports = function (scene) {
   }
 }
 
-
 function extend(player) {
   player.step = step
   player.velocity = new THREE.Vector3()
   player.shoot = shoot
+  //player.position.set()
   return player
 }
 
+
 function step () {
-  if (this.position.x > 1000) this.position.x = -1000
-  if (this.position.y > 560)  this.position.y = -560
-  if (this.position.x < - 1000) this.position.x = 1000
-  if (this.position.y < - 560)  this.position.y = 560
+  process.env.position = [this.position.x, this.position.y]
+  // if (this.position.x > 1000) this.position.x = -1000
+  // if (this.position.y > 560)  this.position.y = -560
+  // if (this.position.x < - 1000) this.position.x = 1000
+  // if (this.position.y < - 560)  this.position.y = 560
   this.rotation.z = this.velocity.x * .05
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
@@ -1437,18 +1451,20 @@ function lazer () {
 
 function shoot() {
   var player = this
-  return [-100, 100].forEach(function (offsetX) {
+  return [-50, 50].forEach(function (offsetX) {
            var beam = lazer()
            beam.position = player.position.clone()
            beam.position.x += offsetX
            beam.step = function () {
-             beam.position.y += 5
+             (beam.position.y *= 1.2) > 1000 &&
+               beam.parent.remove(beam)
+             beam.position.y += 1
            }
            player.parent.add(beam)
          })
 }
 
-},{"./ship":6,"./utils":7}],6:[function(require,module,exports){
+},{"./ship":6,"./utils":8,"__browserify_process":14}],6:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
@@ -1473,7 +1489,20 @@ function createShip() {
   return ship
 }
 
-},{"events":10,"underscore":1}],7:[function(require,module,exports){
+},{"events":11,"underscore":1}],7:[function(require,module,exports){
+var process=require("__browserify_process");var _ = require('underscore')
+
+module.exports = function () {
+  setInterval(function () {
+    _.each(process.env, function (val, key) {
+      var el = document.querySelector('#' + key)
+      if (el) el.textContent = key + ': ' + val.map(function (d) { return (''+d).split('.')[0] }).join(', ')
+    })
+  })
+}
+
+//1400,1200
+},{"__browserify_process":14,"underscore":1}],8:[function(require,module,exports){
 module.exports.scaleBy =
   function (x) {
   return function (y) {
@@ -1481,9 +1510,9 @@ module.exports.scaleBy =
   }
 }
 
-},{}],8:[function(require,module,exports){
-module.exports=require(2)
 },{}],9:[function(require,module,exports){
+module.exports=require(2)
+},{}],10:[function(require,module,exports){
 
 
 //
@@ -1701,7 +1730,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1982,7 +2011,7 @@ EventEmitter.listenerCount = function(emitter, type) {
     ret = emitter._events[type].length;
   return ret;
 };
-},{"util":11}],11:[function(require,module,exports){
+},{"util":12}],12:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2527,5 +2556,61 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":9}]},{},[2,3,4,5,6,7,8])
+},{"_shims":10}],13:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}],14:[function(require,module,exports){
+module.exports=require(13)
+},{}]},{},[2,3,4,5,6,8,9])
 ;

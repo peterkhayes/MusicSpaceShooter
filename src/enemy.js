@@ -10,9 +10,10 @@ var colors = {
 , purple: [.75, .7, .5]
 }
 
-_.mixin({choice: function (arr) {
-           return arr[~~ (Math.random() * arr.length - 1)]
-         }})
+_.mixin({ choice: function (arr) {
+            return arr[~~ (Math.random() * arr.length - 1)]
+          }})
+
 function circular(arr) {
   var i = 0, l = arr.length - 1
   return function () {
@@ -20,11 +21,11 @@ function circular(arr) {
   }
 }
 
-
 var vals = _.values(colors)
 var eeny = circular(vals)
 
 module.exports = function (scene) {
+  return;
   _.range(30).forEach(function (i) {
     ship.load(function (ship) {
       var c = eeny()
