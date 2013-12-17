@@ -1277,8 +1277,6 @@
 }).call(this);
 
 },{}],2:[function(require,module,exports){
-
-},{}],3:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
   , _ = require('underscore')
 
@@ -1336,7 +1334,11 @@ module.exports = function (scene) {
   })
 }
 
-},{"./ship":10,"__browserify_process":18,"underscore":1}],4:[function(require,module,exports){
+},{"./ship":10,"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
+var events = require('events')
+
+module.exports = Object.create(events.EventEmitter.prototype)
+},{"events":15}],4:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
@@ -1409,7 +1411,7 @@ function shoot() {
          })
 }
 
-},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":18,"underscore":1}],5:[function(require,module,exports){
+},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":17,"underscore":1}],5:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1491,7 +1493,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./hero":4,"./music":8,"./templates":11,"__browserify_process":18,"events":15,"underscore":1}],6:[function(require,module,exports){
+},{"./enemy":2,"./hero":4,"./music":8,"./templates":11,"__browserify_process":17,"events":15,"underscore":1}],6:[function(require,module,exports){
 module.exports = function(config) {
 
   if (!config.audioContext) window.AudioContext = window.AudioContext || window.webkitAudioContext; // Webkit shim.
@@ -2211,7 +2213,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":18,"underscore":1}],12:[function(require,module,exports){
+},{"__browserify_process":17,"underscore":1}],12:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2253,7 +2255,7 @@ module.exports = utils
 },{}],13:[function(require,module,exports){
 var enemy = require('./enemy')
 
-},{"./enemy":3}],14:[function(require,module,exports){
+},{"./enemy":2}],14:[function(require,module,exports){
 
 
 //
@@ -3351,7 +3353,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],18:[function(require,module,exports){
-module.exports=require(17)
-},{}]},{},[2,3,4,5,7,10,11,12,13])
+},{}]},{},[2,3,4,5,6,7,8,9,10,11,12,13])
 ;
