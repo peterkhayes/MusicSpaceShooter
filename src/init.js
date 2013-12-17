@@ -4,6 +4,7 @@ var template = require('./templates')
 var _ = require('underscore')
 var music = require('./music')
 
+
 var camera, scene, renderer;
 var geometry, material, mesh;
 var width = innerWidth * .5
@@ -25,6 +26,7 @@ init()
 runLoop()
 
 function init() {
+  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )

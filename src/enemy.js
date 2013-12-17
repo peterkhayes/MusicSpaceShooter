@@ -21,7 +21,13 @@ function circular(arr) {
   }
 }
 
-var vals = _.values(colors)
+
+var vals = []
+_.each(colors, function (val, color) {
+  vals.push(val)
+  val.color = color
+})
+
 var pickColor = circular(vals)
 
 module.exports = function (scene) {
@@ -33,11 +39,14 @@ module.exports = function (scene) {
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.rotation.y += Math.PI
       ship.morality = 'foe'
+      ship.color = c.color
       scene.enemies.push(ship)
       scene.add(ship)
       ship.kill = function () {
+        process.emit('kill', ship.color)
+        scene.enemies = _.without(scene.enemies, ship)
         ship.step = function () { ship.scale.divideScalar(1.09) }
-        setTimeout(function () { scene.remove(ship) }, 2000)
+        setTimeout(function () { scene.remove(ship);  }, 2000)
       }
       ship.step = function (delta) {
         ship.position.x = process.mid[0] + (Math.cos(index += delta) * 300)

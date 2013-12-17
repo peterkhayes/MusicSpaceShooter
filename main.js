@@ -1302,7 +1302,13 @@ function circular(arr) {
   }
 }
 
-var vals = _.values(colors)
+
+var vals = []
+_.each(colors, function (val, color) {
+  vals.push(val)
+  val.color = color
+})
+
 var pickColor = circular(vals)
 
 module.exports = function (scene) {
@@ -1314,11 +1320,14 @@ module.exports = function (scene) {
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.rotation.y += Math.PI
       ship.morality = 'foe'
+      ship.color = c.color
       scene.enemies.push(ship)
       scene.add(ship)
       ship.kill = function () {
+        process.emit('kill', ship.color)
+        scene.enemies = _.without(scene.enemies, ship)
         ship.step = function () { ship.scale.divideScalar(1.09) }
-        setTimeout(function () { scene.remove(ship) }, 2000)
+        setTimeout(function () { scene.remove(ship);  }, 2000)
       }
       ship.step = function (delta) {
         ship.position.x = process.mid[0] + (Math.cos(index += delta) * 300)
@@ -1329,7 +1338,7 @@ module.exports = function (scene) {
   })
 }
 
-},{"./ship":10,"__browserify_process":17,"underscore":1}],4:[function(require,module,exports){
+},{"./ship":10,"__browserify_process":18,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
@@ -1353,7 +1362,6 @@ function extend(hero) {
   hero.position.y += 100
   return hero
 }
-
 
 function step () {
   process.env.position = this.position.toArray().slice(0,2)
@@ -1392,25 +1400,24 @@ function shoot() {
            var beam = lazer(), scene = hero.parent
            beam.position = hero.position.clone()
            beam.position.x += offsetX
+           scene.add(beam)
            beam.step = function () {
-             ((beam.position.y += 50) > 2000) &&
-               beam.parent.remove(beam)
-
+             if ((beam.position.y += 50) > 2000) beam.parent.remove(beam)
              scene.enemies.forEach(function (foe) {
-               if (foe.position.distanceTo(beam.position) < 20)
+               if (foe.position.distanceTo(beam.position) < 50)
                  foe.kill(), scene.remove(beam)
              })
            }
-           scene.add(beam)
          })
 }
 
-},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":17,"underscore":1}],5:[function(require,module,exports){
+},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":18,"underscore":1}],5:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
 var _ = require('underscore')
 var music = require('./music')
+
 
 var camera, scene, renderer;
 var geometry, material, mesh;
@@ -1433,6 +1440,7 @@ init()
 runLoop()
 
 function init() {
+  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
@@ -1485,7 +1493,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":3,"./hero":4,"./music":8,"./templates":11,"__browserify_process":17,"underscore":1}],6:[function(require,module,exports){
+},{"./enemy":3,"./hero":4,"./music":8,"./templates":11,"__browserify_process":18,"events":15,"underscore":1}],6:[function(require,module,exports){
 module.exports = function(config) {
 
   if (!config.audioContext) window.AudioContext = window.AudioContext || window.webkitAudioContext; // Webkit shim.
@@ -2205,7 +2213,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":17,"underscore":1}],12:[function(require,module,exports){
+},{"__browserify_process":18,"underscore":1}],12:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2213,7 +2221,6 @@ utils.scaleBy = function (x) {
     return x * y
   }
 }
-
 
 utils.distance = function(x1, y1, x2, y2) {
   return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)
@@ -2246,8 +2253,8 @@ utils.pointInRect = function(px, py, rx, ry, rw, rh) {
 
 module.exports = utils
 },{}],13:[function(require,module,exports){
-module.exports=require(2)
-},{}],14:[function(require,module,exports){
+var enemey = require('./enemy')
+},{"./enemy":3}],14:[function(require,module,exports){
 
 
 //
@@ -3345,5 +3352,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
+},{}],18:[function(require,module,exports){
+module.exports=require(17)
 },{}]},{},[2,3,4,5,7,10,11,12,13])
 ;

@@ -22,7 +22,6 @@ function extend(hero) {
   return hero
 }
 
-
 function step () {
   process.env.position = this.position.toArray().slice(0,2)
   process.env.rotation = [this.rotation.toArray()[2] * 180]
@@ -60,15 +59,13 @@ function shoot() {
            var beam = lazer(), scene = hero.parent
            beam.position = hero.position.clone()
            beam.position.x += offsetX
+           scene.add(beam)
            beam.step = function () {
-             ((beam.position.y += 50) > 2000) &&
-               beam.parent.remove(beam)
-
+             if ((beam.position.y += 50) > 2000) beam.parent.remove(beam)
              scene.enemies.forEach(function (foe) {
-               if (foe.position.distanceTo(beam.position) < 20)
+               if (foe.position.distanceTo(beam.position) < 50)
                  foe.kill(), scene.remove(beam)
              })
            }
-           scene.add(beam)
          })
 }
