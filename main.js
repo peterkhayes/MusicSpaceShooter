@@ -1279,10 +1279,9 @@
 },{}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
-var ship = require('./ship')
+var process=require("__browserify_process");var ship = require('./ship')
   , _ = require('underscore')
 
-console.log('fuck')
 var colors = {
   red: [0, .7, .5]
 , orange: [0.083, .7, .5]
@@ -1307,24 +1306,34 @@ var vals = _.values(colors)
 var pickColor = circular(vals)
 
 module.exports = function (scene) {
-  _.range(10).forEach(function (index) {
+  var n = 10
+  _.range(n).forEach(function (index) {
     ship.load(function (ship) {
+      var k = 360 / n
       var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.rotation.y += Math.PI
-      ship.step = function (delta) {
-        ship.position.x = 1000 + Math.random() * 1000
-        ship.position.y = Math.random() * 1000
-      }
+      ship.morality = 'foe'
+      scene.enemies.push(ship)
       scene.add(ship)
+      ship.kill = function () {
+        ship.step = function () { ship.scale.divideScalar(1.09) }
+        setTimeout(function () { scene.remove(ship) }, 2000)
+      }
+      ship.step = function (delta) {
+        ship.position.x = process.mid[0] + (Math.cos(index += delta) * 300)
+        ship.position.y =  process.mid[1] + (Math.sin(index += delta) *  300) + 600
+        ship.geometry.computeBoundingBox()
+      }
     })
   })
 }
 
-},{"./ship":10,"underscore":1}],4:[function(require,module,exports){
+},{"./ship":10,"__browserify_process":17,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
+var _ = require('underscore')
 
 module.exports = function (scene) {
   process.env.position = []
@@ -1339,9 +1348,9 @@ module.exports = function (scene) {
 function extend(hero) {
   hero.step = step
   hero.velocity = new THREE.Vector3()
-  hero.shoot = shoot
+  hero.shoot = _.throttle(shoot, 100)
   hero.position.x = (process.bounds.right - process.bounds.left) / 2
-  hero.position.y += 50
+  hero.position.y += 100
   return hero
 }
 
@@ -1352,8 +1361,8 @@ function step () {
   process.env.velocity = this.velocity.toArray().slice(0, 2)
   var bounds = process.bounds
   var v = this.velocity
-  var fwa = 1
-  var sa = 2
+  var fwa = 2
+  var sa = 3
   if(key.isPressed("left")) v.x -= sa
   if(key.isPressed("right")) v.x += sa
   if(key.isPressed("up")) v.y += fwa
@@ -1362,36 +1371,41 @@ function step () {
   if (this.position.x > bounds.right) this.position.x = process.bounds.left
   if (this.position.y > bounds.top)  this.position.y = process.bounds.bot
   if (this.position.x < -100) this.position.x = bounds.right
-  if (this.position.y < -100)  this.position.y = bounds.left
+  if (this.position.y < bounds.bot)  this.position.y = bounds.top - 10
   this.velocity.x *= .9
   this.velocity.y *= .9
   this.position.x += this.velocity.x
   this.position.y += this.velocity.y
+  //this.rotation.x += this.velocity.y * .005
   this.rotation.z = this.velocity.x * .015
 }
 
 
 var cubes = []
 function lazer () {
-  return new THREE.Mesh(new THREE.CubeGeometry(10, 200, 10),  new THREE.MeshBasicMaterial(0x00FF00))
+  return new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10),  new THREE.MeshBasicMaterial(0x00FF00))
 }
 
 function shoot() {
   var hero = this
   return [-50, 50].forEach(function (offsetX) {
-           var beam = lazer()
+           var beam = lazer(), scene = hero.parent
            beam.position = hero.position.clone()
            beam.position.x += offsetX
            beam.step = function () {
-             (beam.position.y *= 1.2) > 1000 &&
+             ((beam.position.y += 50) > 2000) &&
                beam.parent.remove(beam)
-             beam.position.y += 1
+
+             scene.enemies.forEach(function (foe) {
+               if (foe.position.distanceTo(beam.position) < 20)
+                 foe.kill(), scene.remove(beam)
+             })
            }
-           hero.parent.add(beam)
+           scene.add(beam)
          })
 }
 
-},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":17}],5:[function(require,module,exports){
+},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":17,"underscore":1}],5:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1405,9 +1419,10 @@ var clock
 
 process.bounds = {
   left: 0
-, right: 2099
-, top: 1100
+, right: 2200
+, top: 1000
 , bot: 0
+, zed: 700
 }
 
 process.mid = [
@@ -1421,8 +1436,7 @@ function init() {
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(1000, 650, 702)
-  camera.rotation.set(-0.11478688891932705,-0.029220126927448863,-0.003368404667652551)
+  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
 
   renderer = new THREE.WebGLRenderer();
 
@@ -1432,9 +1446,11 @@ function init() {
   camera.aspect = (480 / 640) * 2
   camera.updateProjectionMatrix();
 
+  window.scene = scene
+
   document.body.appendChild( renderer.domElement );
   process.env.fps = [0]
-
+  scene.enemies = []
   hero(scene)
   enemy(scene)
   template()
@@ -2177,7 +2193,6 @@ var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
   var env = {}
-    console.log(process.env)
   _.each(process.env, function (val, key) {
     var el = document.querySelector('#' + key)
     if (el) env[key] = el
@@ -2201,8 +2216,7 @@ utils.scaleBy = function (x) {
 
 
 utils.distance = function(x1, y1, x2, y2) {
-  var xd = x1 - x2, yd = y1 - y2
-  return (xd * xd) + yd * yd
+  return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)
 }
 
 utils.rectInRect = function(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
@@ -3331,5 +3345,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[2,3,4,5,6,7,8,9,10,11,12,13])
+},{}]},{},[2,3,4,5,7,10,11,12,13])
 ;

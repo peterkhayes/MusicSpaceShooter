@@ -2,7 +2,6 @@ var _ = require('underscore')
 
 module.exports = function () {
   var env = {}
-    console.log(process.env)
   _.each(process.env, function (val, key) {
     var el = document.querySelector('#' + key)
     if (el) env[key] = el

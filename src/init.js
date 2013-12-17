@@ -11,9 +11,10 @@ var clock
 
 process.bounds = {
   left: 0
-, right: 2099
-, top: 1100
+, right: 2200
+, top: 1000
 , bot: 0
+, zed: 700
 }
 
 process.mid = [
@@ -27,8 +28,7 @@ function init() {
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(1000, 650, 702)
-  camera.rotation.set(-0.11478688891932705,-0.029220126927448863,-0.003368404667652551)
+  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
 
   renderer = new THREE.WebGLRenderer();
 
@@ -38,9 +38,11 @@ function init() {
   camera.aspect = (480 / 640) * 2
   camera.updateProjectionMatrix();
 
+  window.scene = scene
+
   document.body.appendChild( renderer.domElement );
   process.env.fps = [0]
-
+  scene.enemies = []
   hero(scene)
   enemy(scene)
   template()

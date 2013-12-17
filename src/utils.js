@@ -8,8 +8,7 @@ utils.scaleBy = function (x) {
 
 
 utils.distance = function(x1, y1, x2, y2) {
-  var xd = x1 - x2, yd = y1 - y2
-  return (xd * xd) + yd * yd
+  return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)
 }
 
 utils.rectInRect = function(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
