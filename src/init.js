@@ -11,25 +11,11 @@ var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
 
-process.bounds = {
-  left: 0
-, right: 2200
-, top: 1000
-, bot: 0
-, zed: 700
-}
-
-process.mid = [
-  (process.bounds.right - process.bounds.left) >> 1
-, (process.bounds.top - process.bounds.bottom) >> 1
-]
-
 //Wait for textures, music, models, etc. to load before initializing game so we don't have to muck with async shit everywhere
 ship.load(init)
 function init(load) {
   var ship = load.ship
-  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
-
+  setupProcess()
   music()
   setupCamera()
   buildScene()
@@ -38,6 +24,23 @@ function init(load) {
   template()
   runLoop()
 }
+
+function setupProcess() {
+  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
+  process.bounds = {
+    left: 0
+  , right: 2200
+  , top: 1000
+  , bot: 0
+  , zed: 700
+  }
+
+  process.mid = [
+    (process.bounds.right - process.bounds.left) >> 1
+  , (process.bounds.top - process.bounds.bot) >> 1
+  ]
+}
+
 function runLoop() {
   var delta = clock.getDelta()
   if(Math.random() > .9) process.env.fps = [delta * 1000]
@@ -77,6 +80,13 @@ function buildScene() {
   scene.add(sunLight);
   scene.add(new THREE.AmbientLight(0x404040));
   scene.add(light);
+
+
+  process.on('killall', function () {
+    scene.enemies.forEach(function (foe) {
+      scene.remove(foe)
+    })
+  })
 }
 
 

@@ -1407,25 +1407,11 @@ var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
 
-process.bounds = {
-  left: 0
-, right: 2200
-, top: 1000
-, bot: 0
-, zed: 700
-}
-
-process.mid = [
-  (process.bounds.right - process.bounds.left) >> 1
-, (process.bounds.top - process.bounds.bottom) >> 1
-]
-
 //Wait for textures, music, models, etc. to load before initializing game so we don't have to muck with async shit everywhere
 ship.load(init)
 function init(load) {
   var ship = load.ship
-  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
-
+  setupProcess()
   music()
   setupCamera()
   buildScene()
@@ -1434,6 +1420,23 @@ function init(load) {
   template()
   runLoop()
 }
+
+function setupProcess() {
+  process.__proto__ = Object.create(require('events').EventEmitter.prototype)
+  process.bounds = {
+    left: 0
+  , right: 2200
+  , top: 1000
+  , bot: 0
+  , zed: 700
+  }
+
+  process.mid = [
+    (process.bounds.right - process.bounds.left) >> 1
+  , (process.bounds.top - process.bounds.bot) >> 1
+  ]
+}
+
 function runLoop() {
   var delta = clock.getDelta()
   if(Math.random() > .9) process.env.fps = [delta * 1000]
@@ -1473,6 +1476,13 @@ function buildScene() {
   scene.add(sunLight);
   scene.add(new THREE.AmbientLight(0x404040));
   scene.add(light);
+
+
+  process.on('killall', function () {
+    scene.enemies.forEach(function (foe) {
+      scene.remove(foe)
+    })
+  })
 }
 
 
@@ -2192,19 +2202,27 @@ function createShip() {
 var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
+  _.each(document.querySelectorAll('button'), function (button) {
+    button.addEventListener('click', function ( ) {
+      process.emit(button.className, button.textContent)
+    })
+  })
+}
+
+function dashboard() {
   var env = {}
   _.each(process.env, function (val, key) {
     var el = document.querySelector('#' + key)
     if (el) env[key] = el
   })
-  setInterval(function () {
-    _.each(env, function (val, key) {
-      env[key].textContent = key + ': ' +
-        process.env[key].map(function (d) { return (''+d).split('.')[0] }).join(', ')
-    })
-  })
-}
 
+    setInterval(function () {
+      _.each(env, function (val, key) {
+        env[key].textContent = key + ': ' +
+          process.env[key].map(function (d) { return (''+d).split('.')[0] }).join(', ')
+      }, 100)
+    })
+}
 },{"__browserify_process":17,"underscore":1}],11:[function(require,module,exports){
 var utils = {}
 
@@ -2250,19 +2268,39 @@ var _ = require('underscore')
 
 
 module.exports = function (ship, scene) {
-  _.range(100).forEach(function (index) {
-    var foe = enemy(ship(), scene)
-    console.log(foe)
-    scene.add(foe)
-    scene.enemies.push(foe)
-    foe.step = function (delta) {
-      foe.position.x = process.mid[0] + (Math.cos(index += delta) * 300)
-      foe.position.y =  process.mid[1] + (Math.sin(index += delta) *  300) + 600
-      foe.geometry.computeBoundingBox()
-    }
+  process.on('spawn', function (type) {
+    spawn(100, types[type])
   })
+  spawn(100, circle)
+  function spawn (n, step) {
+    _.range(n).forEach(function (index) {
+      var foe = enemy(ship(), scene)
+      foe.index = index
+      scene.add(foe)
+      scene.enemies.push(foe)
+      foe.step = step
+    })
+  }
 }
 
+
+
+var types = {
+    rows: rows
+  , circle: circle
+}
+
+
+function rows(delta) {
+  this.position.x = 300 + ((((this.index += delta * 10) % 20) % 200) * 100)
+  this.position.y =  300 + ((((this.index += delta * 10) % 200) / 10) * 50)
+}
+
+
+function circle(delta) {
+  this.position.x = process.mid[0] + (Math.cos(this.index += delta) * 1000) + 150
+  this.position.y =  process.mid[1] + (Math.sin(this.index += delta) *  300) + 150
+}
 },{"./enemy":2,"__browserify_process":17,"underscore":1}],13:[function(require,module,exports){
 
 
