@@ -1,25 +1,23 @@
 var events = Object.create(require('events').EventEmitter.prototype)
-
-new THREE.JSONLoader(true).load('models/feisar.js', createShip)
+var _ = require('underscore')
+events.setMaxListeners(200)
 module.exports = { load: function (cb) {
-                     events.on('load', cb)
+                     cb = _.compose(cb, createShip)
+                     geo ? cb() : events.once('load', cb)
                    }
                  }
+var geo, mat
+new THREE.JSONLoader(true).load('models/feisar.js', function (g, m) {
+  geo = g
+  mat = m[0]
+  events.emit('load')
+})
 
-function createMesh (geometry, mat) {
-  geometry.computeTangents();
-  var mesh = new THREE.Mesh(geometry, mat);
-
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-
-  return mesh;
-}
-
-function createShip(geometry, materials) {
-  console.log('wow')
-  var ship = createMesh(geometry, materials[0])
-  ship.scale.set(40, 10, 10)
+function createShip() {
+  var ship = new THREE.Mesh(geo, mat.clone())
+  ship.castShadow = true;
+  ship.receiveShadow = true;
+  ship.scale.set(20, 20, 10)
   ship.rotation.set(Math.PI / 2, Math.PI, 0)
-  events.emit('load', ship)
+  return ship
 }

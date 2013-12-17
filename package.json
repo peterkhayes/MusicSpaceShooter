@@ -2,7 +2,8 @@
   "name": "music_space_shooter",
   "description": "The greatest work of art of all time",
   "dependencies": {
-    "underscore": "1.5.2"
+    "underscore": "1.5.2",
+    "keymaster":"*"
   },
   "scripts": {
     "start": "bash server.sh"
