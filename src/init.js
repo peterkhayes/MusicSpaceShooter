@@ -6,7 +6,7 @@ var music = require('./music')
 var ship = require('./ship')
 var wave = require('./wave')
 
-var camera, scene, renderer;
+var camera, scene, renderer
 var geometry, material, mesh;
 var width = innerWidth * .5
 var clock
@@ -31,29 +31,13 @@ function init(load) {
   process.__proto__ = Object.create(require('events').EventEmitter.prototype)
 
   music()
-
-  clock = new THREE.Clock()
-  scene = new THREE.Scene()
-
   setupCamera()
-
-  renderer = new THREE.WebGLRenderer();
-
-  renderer.setSize(480, 640);
-
   buildScene()
-
-  window.scene = scene
-
-  document.body.appendChild( renderer.domElement );
-  process.env.fps = [0]
-  scene.enemies = []
   hero(ship(), scene)
   wave(ship, scene)
   template()
   runLoop()
 }
-
 function runLoop() {
   var delta = clock.getDelta()
   if(Math.random() > .9) process.env.fps = [delta * 1000]
@@ -65,23 +49,34 @@ function runLoop() {
 }
 
 function buildScene() {
-  scene.add(new THREE.AmbientLight(0x404040));
-  sunLight = new THREE.DirectionalLight(0xffeedd);
+  renderer = new THREE.WebGLRenderer()
+  renderer.setSize(480, 640)
+  process.env.fps = [0]
+
+  clock = new THREE.Clock()
+
+  scene = new THREE.Scene()
+  scene.enemies = []
+  window.scene = scene
+  document.body.appendChild( renderer.domElement );
+
+  var sunLight = new THREE.DirectionalLight(0xffeedd);
   sunLight.position.set(0.3, - 1, - 1).normalize();
 
-  scene.add(sunLight);
-
-  light = new THREE.PointLight(0xffeedd, 1);
+  var light = new THREE.PointLight(0xffeedd, 1);
   light.position.set(-500, 1000, 2000);
-  scene.add(light);
 
-  floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000, 20, 20), new THREE.MeshBasicMaterial({
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000, 20, 20), new THREE.MeshBasicMaterial({
     color: 0x555555,
     wireframe: true
   }))
 
   floor.position.x += process.mid[0]
+
   scene.add(floor)
+  scene.add(sunLight);
+  scene.add(new THREE.AmbientLight(0x404040));
+  scene.add(light);
 }
 
 

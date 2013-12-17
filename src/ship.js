@@ -10,7 +10,7 @@ var geo, mat
 new THREE.JSONLoader(true).load('models/feisar.js', function (g, m) {
   geo = g
   mat = m[0]
-  events.emit('load', {ship: createShip })
+  events.emit('load', { ship: createShip })
 })
 
 function createShip() {
