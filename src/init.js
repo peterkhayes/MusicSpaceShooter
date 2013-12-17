@@ -27,6 +27,9 @@ runLoop()
 
 function init() {
   process.__proto__ = Object.create(require('events').EventEmitter.prototype)
+
+  music()
+
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )

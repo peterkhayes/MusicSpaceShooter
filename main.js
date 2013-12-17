@@ -1334,11 +1334,7 @@ module.exports = function (scene) {
   })
 }
 
-},{"./ship":10,"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
-var events = require('events')
-
-module.exports = Object.create(events.EventEmitter.prototype)
-},{"events":15}],4:[function(require,module,exports){
+},{"./ship":9,"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
@@ -1411,7 +1407,7 @@ function shoot() {
          })
 }
 
-},{"./key":7,"./ship":10,"./utils":12,"__browserify_process":17,"underscore":1}],5:[function(require,module,exports){
+},{"./key":6,"./ship":9,"./utils":11,"__browserify_process":17,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1441,6 +1437,9 @@ runLoop()
 
 function init() {
   process.__proto__ = Object.create(require('events').EventEmitter.prototype)
+
+  music()
+
   clock = new THREE.Clock()
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
@@ -1493,7 +1492,7 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":2,"./hero":4,"./music":8,"./templates":11,"__browserify_process":17,"events":15,"underscore":1}],6:[function(require,module,exports){
+},{"./enemy":2,"./hero":3,"./music":7,"./templates":10,"__browserify_process":17,"events":14,"underscore":1}],5:[function(require,module,exports){
 module.exports = function(config) {
 
   if (!config.audioContext) window.AudioContext = window.AudioContext || window.webkitAudioContext; // Webkit shim.
@@ -1617,7 +1616,7 @@ module.exports = function(config) {
 
 };
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};//     keymaster.js
 //     (c) 2011-2013 Thomas Fuchs
 //     keymaster.js may be freely distributed under the MIT license.
@@ -1915,56 +1914,59 @@ var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? 
 
 })(global);
 
-},{}],8:[function(require,module,exports){
-var mT = require('./musicTheory');
+},{}],7:[function(require,module,exports){
+var process=require("__browserify_process");var mT = require('./musicTheory');
 var Instrumental = require('./instrumental');
 var events = Object.create(require('events').EventEmitter.prototype);
+var _ = require('underscore')
 
-var player = new Instrumental({
-  path: "/audio",
-  instruments: {
-    'square': [29, 36, 43, 50]
-  }
-});
+module.exports = function () {
+  var player = new Instrumental({
+    path: "/audio",
+    instruments: {
+      'square': [29, 36, 43, 50]
+    }
+  });
 
-var song = {
-  root: 24,
-  mode: 'minor',
-  tempo: 140
-};
+  var song = {
+    root: 24,
+    mode: 'minor',
+    tempo: 140
+  };
 
-var chordProgression = [
-  mT.transpose(mT.makeScaleChord(song.root, song.mode, 1, 0), 12),
-  mT.makeScaleChord(song.root, song.mode, 6, 1),
-  mT.makeScaleChord(song.root, song.mode, 4, 2),
-  mT.makeScaleChord(song.root, song.mode, 5, 2)
-];
+  var chordProgression = [
+    mT.transpose(mT.makeScaleChord(song.root, song.mode, 1, 0), 12),
+    mT.makeScaleChord(song.root, song.mode, 6, 1),
+    mT.makeScaleChord(song.root, song.mode, 4, 2),
+    mT.makeScaleChord(song.root, song.mode, 5, 2)
+  ];
 
-console.log("Chord progression:", chordProgression);
+  console.log("Chord progression:", chordProgression);
 
-var step = 0;
-var chordIdx = 0;
-var chordLength = 16;
+  var step = 0;
+  var chordIdx = 0;
+  var chordLength = 16;
 
-var noteToMS = function(type) {
-  return 240000 / (song.tempo * type);
-};
+  var noteToMS = function(type) {
+    return 240000 / (song.tempo * type);
+  };
 
-var playNote = function() {
-  var chord = chordProgression[chordIdx];
-  var note = chord[step % chord.length];
-  var length = noteToMS(16);
-  player.play('square', note, 3*length/4);
-  step++;
-  if (step % chordLength === 0) {
-    chordIdx = (chordIdx + 1) % chordProgression.length;
-  }
-  setTimeout(playNote, length);
-};
+  var playNote = _.throttle(function() {
+    var chord = chordProgression[chordIdx];
+    var note = chord[step % chord.length];
+    var length = noteToMS(16);
+    player.play('square', note, 3*length/4);
+    step++;
+    if (step % chordLength === 0) {
+      chordIdx = (chordIdx + 1) % chordProgression.length;
+    }
 
-playNote();
+    process.on('kill', playNote, length)
+  }, 100);
+  playNote();
+}
 
-},{"./instrumental":6,"./musicTheory":9,"events":15}],9:[function(require,module,exports){
+},{"./instrumental":5,"./musicTheory":8,"__browserify_process":17,"events":14,"underscore":1}],8:[function(require,module,exports){
 module.exports.basicChordTypes = ['major', 'minor'];
 module.exports.chordTypes = ['major', 'minor'];
 
@@ -2171,7 +2173,7 @@ module.exports.transpose = function(notes, amount) {
   }
   return transposed;
 };
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
@@ -2196,7 +2198,7 @@ function createShip() {
   return ship
 }
 
-},{"events":15,"underscore":1}],11:[function(require,module,exports){
+},{"events":14,"underscore":1}],10:[function(require,module,exports){
 var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
@@ -2213,7 +2215,7 @@ module.exports = function () {
   })
 }
 
-},{"__browserify_process":17,"underscore":1}],12:[function(require,module,exports){
+},{"__browserify_process":17,"underscore":1}],11:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2252,10 +2254,10 @@ utils.pointInRect = function(px, py, rx, ry, rw, rh) {
 }
 
 module.exports = utils
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var enemy = require('./enemy')
 
-},{"./enemy":2}],14:[function(require,module,exports){
+},{"./enemy":2}],13:[function(require,module,exports){
 
 
 //
@@ -2473,7 +2475,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2754,7 +2756,7 @@ EventEmitter.listenerCount = function(emitter, type) {
     ret = emitter._events[type].length;
   return ret;
 };
-},{"util":16}],16:[function(require,module,exports){
+},{"util":15}],15:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3299,7 +3301,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":14}],17:[function(require,module,exports){
+},{"_shims":13}],16:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3353,5 +3355,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[2,3,4,5,6,7,8,9,10,11,12,13])
+},{}],17:[function(require,module,exports){
+module.exports=require(16)
+},{}]},{},[2,3,4,5,6,7,8,9,10,11,12])
 ;
