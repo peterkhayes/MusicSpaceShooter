@@ -1277,8 +1277,7 @@
 }).call(this);
 
 },{}],2:[function(require,module,exports){
-var process=require("__browserify_process");var ship = require('./ship')
-  , _ = require('underscore')
+var process=require("__browserify_process");var _ = require('underscore')
 
 var colors = {
   red: [0, .7, .5]
@@ -1307,47 +1306,34 @@ _.each(colors, function (val, color) {
   val.color = color
 })
 
-var pickColor = circular(vals)
+  var pickColor = circular(vals)
 
-module.exports = function (scene) {
-  _.range(100).forEach(function (index) {
-    ship.load(function (ship) {
-      var c = pickColor()
-      ship.material.color.setHSL(c[0], c[1], c[2])
-      ship.rotation.y += Math.PI
-      ship.morality = 'foe'
-      ship.color = c.color
-      scene.enemies.push(ship)
-      scene.add(ship)
-      ship.kill = function () {
-        process.emit('kill', ship.color)
-        scene.enemies = _.without(scene.enemies, ship)
-        ship.step = function () { ship.scale.divideScalar(1.09) }
-        setTimeout(function () { scene.remove(ship);  }, 2000)
-      }
-      ship.step = function (delta) {
-        ship.position.x = process.mid[0] + (Math.cos(index += delta) * 300)
-        ship.position.y =  process.mid[1] + (Math.sin(index += delta) *  300) + 600
-        ship.geometry.computeBoundingBox()
-      }
-    })
-  })
+module.exports = function (ship, scene) {
+  var c = pickColor()
+  ship.material.color.setHSL(c[0], c[1], c[2])
+  ship.rotation.y += Math.PI
+  ship.morality = 'foe'
+  ship.color = c.color
+  ship.kill = function () {
+    process.emit('kill', ship.color)
+    scene.enemies = _.without(scene.enemies, ship)
+    ship.step = function () { ship.scale.divideScalar(1.09) }
+    setTimeout(function () { scene.remove(ship);  }, 2000)
+  }
+  return ship
 }
 
-},{"./ship":9,"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
+},{"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
 var _ = require('underscore')
 
-module.exports = function (scene) {
+module.exports = function (ship, scene) {
   process.env.position = []
   process.env.rotation = []
   process.env.velocity = []
-
-  ship.load(function (ship) {
-    scene.add(extend(ship))
-  })
+  scene.add(extend(ship))
 }
 
 function extend(hero) {
@@ -1413,7 +1399,8 @@ var enemy = require('./enemy')
 var template = require('./templates')
 var _ = require('underscore')
 var music = require('./music')
-
+var ship = require('./ship')
+var wave = require('./wave')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
@@ -1432,35 +1419,35 @@ process.mid = [
   (process.bounds.right - process.bounds.left) >> 1
 , (process.bounds.top - process.bounds.bottom) >> 1
 ]
-init()
-runLoop()
 
-function init() {
+//Wait for textures, music, models, etc. to load before initializing game so we don't have to muck with async shit everywhere
+ship.load(init)
+function init(load) {
+  var ship = load.ship
   process.__proto__ = Object.create(require('events').EventEmitter.prototype)
 
   music()
 
   clock = new THREE.Clock()
   scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
+
+  setupCamera()
 
   renderer = new THREE.WebGLRenderer();
 
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = (480 / 640) * 2
-  camera.updateProjectionMatrix();
 
   window.scene = scene
 
   document.body.appendChild( renderer.domElement );
   process.env.fps = [0]
   scene.enemies = []
-  hero(scene)
-  enemy(scene)
+  hero(ship(), scene)
+  wave(ship, scene)
   template()
+  runLoop()
 }
 
 function runLoop() {
@@ -1492,7 +1479,15 @@ function buildScene() {
   floor.position.x += process.mid[0]
   scene.add(floor)
 }
-},{"./enemy":2,"./hero":3,"./music":7,"./templates":10,"__browserify_process":17,"events":14,"underscore":1}],5:[function(require,module,exports){
+
+
+function setupCamera() {
+  camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
+  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
+  camera.aspect = (480 / 640) * 2
+  camera.updateProjectionMatrix();
+}
+},{"./enemy":2,"./hero":3,"./music":7,"./ship":9,"./templates":10,"./wave":12,"__browserify_process":17,"events":14,"underscore":1}],5:[function(require,module,exports){
 module.exports = function(config) {
 
   if (!config.audioContext) window.AudioContext = window.AudioContext || window.webkitAudioContext; // Webkit shim.
@@ -2178,15 +2173,15 @@ var events = Object.create(require('events').EventEmitter.prototype)
 var _ = require('underscore')
 events.setMaxListeners(200)
 module.exports = { load: function (cb) {
-                     cb = _.compose(cb, createShip)
                      geo ? cb() : events.once('load', cb)
+
                    }
                  }
 var geo, mat
 new THREE.JSONLoader(true).load('models/feisar.js', function (g, m) {
   geo = g
   mat = m[0]
-  events.emit('load')
+  events.emit('load', {ship: createShip })
 })
 
 function createShip() {
@@ -2255,9 +2250,25 @@ utils.pointInRect = function(px, py, rx, ry, rw, rh) {
 
 module.exports = utils
 },{}],12:[function(require,module,exports){
-var enemy = require('./enemy')
+var process=require("__browserify_process");var enemy = require('./enemy')
+var _ = require('underscore')
 
-},{"./enemy":2}],13:[function(require,module,exports){
+
+module.exports = function (ship, scene) {
+  _.range(100).forEach(function (index) {
+    var foe = enemy(ship(), scene)
+    console.log(foe)
+    scene.add(foe)
+    scene.enemies.push(foe)
+    foe.step = function (delta) {
+      foe.position.x = process.mid[0] + (Math.cos(index += delta) * 300)
+      foe.position.y =  process.mid[1] + (Math.sin(index += delta) *  300) + 600
+      foe.geometry.computeBoundingBox()
+    }
+  })
+}
+
+},{"./enemy":2,"__browserify_process":17,"underscore":1}],13:[function(require,module,exports){
 
 
 //

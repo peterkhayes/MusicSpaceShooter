@@ -3,14 +3,11 @@ var utils = require('./utils')
 var key = require('./key')
 var _ = require('underscore')
 
-module.exports = function (scene) {
+module.exports = function (ship, scene) {
   process.env.position = []
   process.env.rotation = []
   process.env.velocity = []
-
-  ship.load(function (ship) {
-    scene.add(extend(ship))
-  })
+  scene.add(extend(ship))
 }
 
 function extend(hero) {

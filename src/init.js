@@ -3,7 +3,8 @@ var enemy = require('./enemy')
 var template = require('./templates')
 var _ = require('underscore')
 var music = require('./music')
-
+var ship = require('./ship')
+var wave = require('./wave')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
@@ -22,35 +23,35 @@ process.mid = [
   (process.bounds.right - process.bounds.left) >> 1
 , (process.bounds.top - process.bounds.bottom) >> 1
 ]
-init()
-runLoop()
 
-function init() {
+//Wait for textures, music, models, etc. to load before initializing game so we don't have to muck with async shit everywhere
+ship.load(init)
+function init(load) {
+  var ship = load.ship
   process.__proto__ = Object.create(require('events').EventEmitter.prototype)
 
   music()
 
   clock = new THREE.Clock()
   scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
-  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
+
+  setupCamera()
 
   renderer = new THREE.WebGLRenderer();
 
   renderer.setSize(480, 640);
 
   buildScene()
-  camera.aspect = (480 / 640) * 2
-  camera.updateProjectionMatrix();
 
   window.scene = scene
 
   document.body.appendChild( renderer.domElement );
   process.env.fps = [0]
   scene.enemies = []
-  hero(scene)
-  enemy(scene)
+  hero(ship(), scene)
+  wave(ship, scene)
   template()
+  runLoop()
 }
 
 function runLoop() {
@@ -81,4 +82,12 @@ function buildScene() {
 
   floor.position.x += process.mid[0]
   scene.add(floor)
+}
+
+
+function setupCamera() {
+  camera = new THREE.PerspectiveCamera( 75, width / window.innerHeight, 1, 4000 )
+  camera.position.set(process.bounds.top, (process.bounds.right - process.bounds.left) >> 2, 700)
+  camera.aspect = (480 / 640) * 2
+  camera.updateProjectionMatrix();
 }
