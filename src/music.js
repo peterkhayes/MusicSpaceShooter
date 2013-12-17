@@ -5,7 +5,7 @@ var _ = require('underscore')
 
 module.exports = function () {
   var player = new Instrumental({
-    path: "/audio",
+    path: "audio",
     instruments: {
       'square': [29, 36, 43, 50]
     }
