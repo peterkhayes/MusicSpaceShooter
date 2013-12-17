@@ -1,5 +1,6 @@
 var player = require('./player.js')
 var _ = require('underscore')
+var music = require('./music')
 
 var camera, scene, renderer;
 var geometry, material, mesh;
