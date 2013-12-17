@@ -31,10 +31,8 @@ _.each(colors, function (val, color) {
 var pickColor = circular(vals)
 
 module.exports = function (scene) {
-  var n = 10
-  _.range(n).forEach(function (index) {
+  _.range(100).forEach(function (index) {
     ship.load(function (ship) {
-      var k = 360 / n
       var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.rotation.y += Math.PI

@@ -1,1 +1,1 @@
-var enemey = require('./enemy')
+var enemy = require('./enemy')

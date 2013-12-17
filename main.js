@@ -1312,10 +1312,8 @@ _.each(colors, function (val, color) {
 var pickColor = circular(vals)
 
 module.exports = function (scene) {
-  var n = 10
-  _.range(n).forEach(function (index) {
+  _.range(100).forEach(function (index) {
     ship.load(function (ship) {
-      var k = 360 / n
       var c = pickColor()
       ship.material.color.setHSL(c[0], c[1], c[2])
       ship.rotation.y += Math.PI
@@ -2253,7 +2251,8 @@ utils.pointInRect = function(px, py, rx, ry, rw, rh) {
 
 module.exports = utils
 },{}],13:[function(require,module,exports){
-var enemey = require('./enemy')
+var enemy = require('./enemy')
+
 },{"./enemy":3}],14:[function(require,module,exports){
 
 
