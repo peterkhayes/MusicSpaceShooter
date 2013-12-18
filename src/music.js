@@ -34,17 +34,24 @@ module.exports = function () {
     return 240000 / (song.tempo * type);
   };
 
-  var playNote = _.throttle(function() {
+  var playNote = function(abc) {
     var chord = chordProgression[chordIdx];
     var note = chord[step % chord.length];
     var length = noteToMS(16);
-    player.play('square', note, 3*length/4);
+    player.play('square', note, abc * length/4);
     step++;
+
     if (step % chordLength === 0) {
       chordIdx = (chordIdx + 1) % chordProgression.length;
+      chordIndicator.style.backgroundColor = process.colorIndices[chordIdx]
+      process.env.chord = chordIdx
     }
 
-    process.on('kill', playNote, length)
-  }, 100);
-  playNote();
+    if (abc < 5) setTimeout(playNote, length, 3)
+  }
+  playNote(3);
+  process.on('kill', function () {
+    var i = 6
+    while (++i < 20) playNote(i)
+  })
 }

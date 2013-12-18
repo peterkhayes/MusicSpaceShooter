@@ -1281,8 +1281,8 @@ var process=require("__browserify_process");var _ = require('underscore')
 
 var colors = {
   red: [0, .7, .5]
-, orange: [0.083, .7, .5]
-, yellow: [.16666, .7, .5]
+//, orange: [0.083, .7, .5]
+//, yellow: [.16666, .7, .5]
 , green: [.333, .7, .5]
 , blue: [.6666, .7, .5]
 , purple: [.75, .7, .5]
@@ -1293,12 +1293,12 @@ _.mixin({ choice: function (arr) {
           }})
 
 function circular(arr) {
-  var i = 0, l = arr.length - 1
+  var i = 0, l = arr.length
   return function () {
     return arr[++i % l]
   }
 }
-
+process.colorIndices = _.keys(colors)
 
 var vals = []
 _.each(colors, function (val, color) {
@@ -1323,7 +1323,7 @@ module.exports = function (ship, scene) {
   return ship
 }
 
-},{"__browserify_process":17,"underscore":1}],3:[function(require,module,exports){
+},{"__browserify_process":16,"underscore":1}],3:[function(require,module,exports){
 var process=require("__browserify_process");var ship = require('./ship')
 var utils = require('./utils')
 var key = require('./key')
@@ -1342,6 +1342,10 @@ function extend(hero) {
   hero.shoot = _.throttle(shoot, 100)
   hero.position.x = (process.bounds.right - process.bounds.left) / 2
   hero.position.y += 100
+  var light = new THREE.DirectionalLight(0xffeedd, 10);
+  scene.hero = hero
+  light.rotation = hero.rotation
+  //hero.add(light)
   return hero
 }
 
@@ -1370,7 +1374,6 @@ function step () {
   this.rotation.z = this.velocity.x * .015
 }
 
-
 var cubes = []
 function lazer () {
   return new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10),  new THREE.MeshBasicMaterial(0x00FF00))
@@ -1386,14 +1389,16 @@ function shoot() {
            beam.step = function () {
              if ((beam.position.y += 50) > 2000) beam.parent.remove(beam)
              scene.enemies.forEach(function (foe) {
-               if (foe.position.distanceTo(beam.position) < 50)
+               if (foe.position.distanceTo(beam.position) > 50) return
+               if (foe.color == process.colorIndices[process.env.chord])
                  foe.kill(), scene.remove(beam)
+               else process.emit('falseHit')
              })
            }
          })
 }
 
-},{"./key":6,"./ship":9,"./utils":11,"__browserify_process":17,"underscore":1}],4:[function(require,module,exports){
+},{"./key":6,"./ship":9,"./utils":11,"__browserify_process":16,"underscore":1}],4:[function(require,module,exports){
 var process=require("__browserify_process");var hero = require('./hero')
 var enemy = require('./enemy')
 var template = require('./templates')
@@ -1449,7 +1454,7 @@ function runLoop() {
 
 function buildScene() {
   renderer = new THREE.WebGLRenderer()
-  renderer.setSize(480, 640)
+  renderer.setSize(460, 640)
   process.env.fps = [0]
 
   clock = new THREE.Clock()
@@ -1474,9 +1479,8 @@ function buildScene() {
 
   scene.add(floor)
   scene.add(sunLight);
-  scene.add(new THREE.AmbientLight(0x404040));
   scene.add(light);
-
+  scene.add(new THREE.AmbientLight(0x404040));
 
   process.on('killall', function () {
     scene.enemies.forEach(function (foe) {
@@ -1492,7 +1496,7 @@ function setupCamera() {
   camera.aspect = (480 / 640) * 2
   camera.updateProjectionMatrix();
 }
-},{"./enemy":2,"./hero":3,"./music":7,"./ship":9,"./templates":10,"./wave":12,"__browserify_process":17,"events":14,"underscore":1}],5:[function(require,module,exports){
+},{"./enemy":2,"./hero":3,"./music":7,"./ship":9,"./templates":10,"./wave":12,"__browserify_process":16,"events":14,"underscore":1}],5:[function(require,module,exports){
 module.exports = function(config) {
 
   if (!config.audioContext) window.AudioContext = window.AudioContext || window.webkitAudioContext; // Webkit shim.
@@ -1951,22 +1955,29 @@ module.exports = function () {
     return 240000 / (song.tempo * type);
   };
 
-  var playNote = _.throttle(function() {
+  var playNote = function(abc) {
     var chord = chordProgression[chordIdx];
     var note = chord[step % chord.length];
     var length = noteToMS(16);
-    player.play('square', note, 3*length/4);
+    player.play('square', note, abc * length/4);
     step++;
+
     if (step % chordLength === 0) {
       chordIdx = (chordIdx + 1) % chordProgression.length;
+      chordIndicator.style.backgroundColor = process.colorIndices[chordIdx]
+      process.env.chord = chordIdx
     }
 
-    process.on('kill', playNote, length)
-  }, 100);
-  playNote();
+    if (abc < 5) setTimeout(playNote, length, 3)
+  }
+  playNote(3);
+  process.on('kill', function () {
+    var i = 6
+    while (++i < 20) playNote(i)
+  })
 }
 
-},{"./instrumental":5,"./musicTheory":8,"__browserify_process":17,"events":14,"underscore":1}],8:[function(require,module,exports){
+},{"./instrumental":5,"./musicTheory":8,"__browserify_process":16,"events":14,"underscore":1}],8:[function(require,module,exports){
 module.exports.basicChordTypes = ['major', 'minor'];
 module.exports.chordTypes = ['major', 'minor'];
 
@@ -2202,6 +2213,14 @@ function createShip() {
 var process=require("__browserify_process");var _ = require('underscore')
 
 module.exports = function () {
+process.on('falseHit', function () {
+  document.title = ':('
+  setTimeout(function () {
+    document.title = ''
+
+  }, 500)
+})
+
   _.each(document.querySelectorAll('button'), function (button) {
     button.addEventListener('click', function ( ) {
       process.emit(button.className, button.textContent)
@@ -2223,7 +2242,7 @@ function dashboard() {
       }, 100)
     })
 }
-},{"__browserify_process":17,"underscore":1}],11:[function(require,module,exports){
+},{"__browserify_process":16,"underscore":1}],11:[function(require,module,exports){
 var utils = {}
 
 utils.scaleBy = function (x) {
@@ -2271,14 +2290,19 @@ module.exports = function (ship, scene) {
   process.on('spawn', function (type) {
     spawn(100, types[type])
   })
-  spawn(100, circle)
-  function spawn (n, step) {
+  spawn(25, circle)
+  function spawn (n, behave) {
     _.range(n).forEach(function (index) {
       var foe = enemy(ship(), scene)
       foe.index = index
       scene.add(foe)
       scene.enemies.push(foe)
-      foe.step = step
+      foe.behavior = behave
+      foe.step = function (delta) {
+        this.lookAt(scene.hero.position)
+        this.rotation.z = 0
+        this.behavior(delta)
+      }
     })
   }
 }
@@ -2301,7 +2325,7 @@ function circle(delta) {
   this.position.x = process.mid[0] + (Math.cos(this.index += delta) * 1000) + 150
   this.position.y =  process.mid[1] + (Math.sin(this.index += delta) *  300) + 150
 }
-},{"./enemy":2,"__browserify_process":17,"underscore":1}],13:[function(require,module,exports){
+},{"./enemy":2,"__browserify_process":16,"underscore":1}],13:[function(require,module,exports){
 
 
 //
@@ -3399,7 +3423,5 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],17:[function(require,module,exports){
-module.exports=require(16)
 },{}]},{},[2,3,4,5,6,7,8,9,10,11,12])
 ;

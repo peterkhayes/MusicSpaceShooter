@@ -2,8 +2,8 @@ var _ = require('underscore')
 
 var colors = {
   red: [0, .7, .5]
-, orange: [0.083, .7, .5]
-, yellow: [.16666, .7, .5]
+//, orange: [0.083, .7, .5]
+//, yellow: [.16666, .7, .5]
 , green: [.333, .7, .5]
 , blue: [.6666, .7, .5]
 , purple: [.75, .7, .5]
@@ -14,12 +14,12 @@ _.mixin({ choice: function (arr) {
           }})
 
 function circular(arr) {
-  var i = 0, l = arr.length - 1
+  var i = 0, l = arr.length
   return function () {
     return arr[++i % l]
   }
 }
-
+process.colorIndices = _.keys(colors)
 
 var vals = []
 _.each(colors, function (val, color) {

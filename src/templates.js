@@ -1,6 +1,14 @@
 var _ = require('underscore')
 
 module.exports = function () {
+process.on('falseHit', function () {
+  document.title = ':('
+  setTimeout(function () {
+    document.title = ''
+
+  }, 500)
+})
+
   _.each(document.querySelectorAll('button'), function (button) {
     button.addEventListener('click', function ( ) {
       process.emit(button.className, button.textContent)

@@ -53,7 +53,7 @@ function runLoop() {
 
 function buildScene() {
   renderer = new THREE.WebGLRenderer()
-  renderer.setSize(480, 640)
+  renderer.setSize(460, 640)
   process.env.fps = [0]
 
   clock = new THREE.Clock()
@@ -78,9 +78,8 @@ function buildScene() {
 
   scene.add(floor)
   scene.add(sunLight);
-  scene.add(new THREE.AmbientLight(0x404040));
   scene.add(light);
-
+  scene.add(new THREE.AmbientLight(0x404040));
 
   process.on('killall', function () {
     scene.enemies.forEach(function (foe) {

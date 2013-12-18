@@ -6,14 +6,19 @@ module.exports = function (ship, scene) {
   process.on('spawn', function (type) {
     spawn(100, types[type])
   })
-  spawn(100, circle)
-  function spawn (n, step) {
+  spawn(25, circle)
+  function spawn (n, behave) {
     _.range(n).forEach(function (index) {
       var foe = enemy(ship(), scene)
       foe.index = index
       scene.add(foe)
       scene.enemies.push(foe)
-      foe.step = step
+      foe.behavior = behave
+      foe.step = function (delta) {
+        this.lookAt(scene.hero.position)
+        this.rotation.z = 0
+        this.behavior(delta)
+      }
     })
   }
 }

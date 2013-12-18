@@ -16,6 +16,10 @@ function extend(hero) {
   hero.shoot = _.throttle(shoot, 100)
   hero.position.x = (process.bounds.right - process.bounds.left) / 2
   hero.position.y += 100
+  var light = new THREE.DirectionalLight(0xffeedd, 10);
+  scene.hero = hero
+  light.rotation = hero.rotation
+  //hero.add(light)
   return hero
 }
 
@@ -44,7 +48,6 @@ function step () {
   this.rotation.z = this.velocity.x * .015
 }
 
-
 var cubes = []
 function lazer () {
   return new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10),  new THREE.MeshBasicMaterial(0x00FF00))
@@ -60,8 +63,10 @@ function shoot() {
            beam.step = function () {
              if ((beam.position.y += 50) > 2000) beam.parent.remove(beam)
              scene.enemies.forEach(function (foe) {
-               if (foe.position.distanceTo(beam.position) < 50)
+               if (foe.position.distanceTo(beam.position) > 50) return
+               if (foe.color == process.colorIndices[process.env.chord])
                  foe.kill(), scene.remove(beam)
+               else process.emit('falseHit')
              })
            }
          })
